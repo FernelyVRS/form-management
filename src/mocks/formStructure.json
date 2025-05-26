@@ -1,5 +1,6 @@
 [
     {
+        "id": "1",
         "orden": 1,
         "titulo": "Servicios Basicos",
         "restriccion": "",
@@ -38,6 +39,7 @@
         ]
     },
     {
+        "id": "2",
         "orden": 5,
         "titulo": "Equipamiento del hogar",
         "restriccion": "",
@@ -54,47 +56,90 @@
                         "id": "TieneTelevision",
                         "label": "Television",
                         "variable": "TieneTelevision",
-                        "tipo": "select"
+                        "tipo": "select",
+                        "options": [
+                            {
+                                "description": "Si",
+                                "value": "1"
+                            },
+                            {
+                                "description": "No",
+                                "value": "2"
+                            },
+                            {
+                                "description": "No sabe",
+                                "value": "98"
+                            }
+                        ]
                     },
                     {
                         "id": "TieneTelevisionConCable",
                         "label": "Television con cable",
                         "variable": "TieneTelevisionConCable",
-                        "tipo": "select"
+                        "tipo": "select",
+                        "options": [
+                            {
+                                "description": "Si",
+                                "value": "1"
+                            },
+                            {
+                                "description": "No",
+                                "value": "2"
+                            },
+                            {
+                                "description": "No sabe",
+                                "value": "98"
+                            }
+                        ]
                     },
                     {
                         "id": "TieneComputadora",
                         "label": "Computadora",
                         "variable": "TieneComputadora",
-                        "tipo": "select"
+                        "tipo": "select",
+                        "options": [
+                            {
+                                "description": "Si",
+                                "value": "1"
+                            },
+                            {
+                                "description": "No",
+                                "value": "2"
+                            },
+                            {
+                                "description": "No sabe",
+                                "value": "98"
+                            }
+                        ]
                     },
                     {
                         "id": "TieneComputadoraConInternet",
                         "label": "Computadora con conexion a internet",
                         "variable": "TieneComputadoraConInternet",
-                        "tipo": "select"
-                    }
-                ],
-                "optiones": [
-                    {
-                        "description": "Si",
-                        "value": "1"
-                    },
-                    {
-                        "description": "No",
-                        "value": "2"
-                    },
-                    {
-                        "description": "No sabe",
-                        "value": "98"
+                        "tipo": "select",
+                        "options": [
+                            {
+                                "description": "Si",
+                                "value": "1"
+                            },
+                            {
+                                "description": "No",
+                                "value": "2"
+                            },
+                            {
+                                "description": "No sabe",
+                                "value": "98"
+                            }
+                        ]
                     }
                 ]
             }
         ]
     },
     {
+        "id": "3",
         "orden": 1,
-        "titulo": "Direccion",
+        "titulo": "Dirección",
         "restriccion": "",
         "entidad": "Vivienda",
         "preguntas": [
@@ -123,7 +168,7 @@
                 "variable": "CallesEstanAsfaltadas",
                 "tipo": "select",
                 "core": true,
-                "optiones": [
+                "options": [
                     {
                         "description": "Si",
                         "value": "1"
@@ -137,6 +182,7 @@
         ]
     },
     {
+        "id": "4",
         "orden": 3,
         "titulo": "Caracteristicas Miembro del Hogar",
         "restriccion": "",
@@ -173,11 +219,11 @@
             {
                 "label": "Nivel",
                 "orden": 2,
-                "id": "Nivel",
+                "id": "NivelGradoMasAltoAp",
                 "variable": "NivelGradoMasAltoAp",
                 "tipo": "select",
                 "core": true,
-                "optiones": [
+                "options": [
                     {
                         "description": "Ninguno",
                         "value": "0"
@@ -210,13 +256,13 @@
             },
             {
                 "label": "Grado",
-                "id": "Grado",
+                "id": "GradoMasAlto",
                 "orden": 5,
                 "variable": "GradoMasAlto",
-                "tipo": "selectGrado",
+                "tipo": "dependiente",
                 "dependiente": "NivelGradoMasAltoAp",
                 "core": true,
-                "optiones": {
+                "dependentOptions": {
                     "1": [
                         {
                             "description": "1",
@@ -256,6 +302,7 @@
         ]
     },
     {
+        "id": "5",
         "orden": 4,
         "titulo": "Empleo",
         "restriccion": "",
@@ -268,7 +315,7 @@
                 "variable": "ActividadesEconomicasSemana",
                 "tipo": "select",
                 "core": true,
-                "optiones": [
+                "options": [
                     {
                         "description": "Si",
                         "value": "1"
@@ -284,13 +331,13 @@
                 ]
             },
             {
-                "label": "Aunque no trabajo la semna pasada, Tenia algun empleo, negocio o actividad al que volvera?",
+                "label": "Aunque no trabajo la semna pasada, Tenia algun empleo, negocio o actividad al que volverá?",
                 "orden": 52,
                 "id": "NoTrabajoSemanaPasada",
                 "variable": "NoTrabajoSemanaPasada",
                 "tipo": "select",
                 "core": true,
-                "optiones": [
+                "options": [
                     {
                         "description": "Si",
                         "value": "1"
@@ -312,7 +359,7 @@
                 "variable": "RealizoTrabajoSemanaPasada",
                 "tipo": "select",
                 "core": true,
-                "optiones": [
+                "options": [
                     {
                         "description": "Actividades ......",
                         "value": "1"
@@ -330,13 +377,13 @@
                 "variable": "ActividadPrincipalEmpresa",
                 "tipo": "select",
                 "core": true,
-                "optiones": [
+                "options": [
                     {
-                        "description": "Agricultura y Ganaderia",
+                        "description": "Agricultura y Ganadería",
                         "value": "1"
                     },
                     {
-                        "description": "Mineria y Cantera",
+                        "description": "Minería y Cantera",
                         "value": "2"
                     },
                     {

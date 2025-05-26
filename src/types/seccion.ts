@@ -1,11 +1,12 @@
-import { ComposeField, NumberField, SelectDependedField, SelectField, TextField } from "./fields"
+import { Pregunta } from "./fields"
 
 export type Seccion = {
+  id: string,
   titulo: string,
   orden: number,
   restriccion: string,
   entidad: string,
-  preguntas: NumberField[] | TextField[] | SelectField[] | SelectDependedField[] | ComposeField[]
+  preguntas: Pregunta[]
 }
 
 export type SeccionSinPreguntas = Omit<Seccion, "preguntas">

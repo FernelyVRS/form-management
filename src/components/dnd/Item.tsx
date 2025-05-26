@@ -1,10 +1,9 @@
 import { useSortable } from '@dnd-kit/react/sortable';
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import { GripVertical } from 'lucide-react';
 import { RestrictToVerticalAxis } from '@dnd-kit/abstract/modifiers';
 import { Pregunta } from '@/types';
-import { UniqueIdentifier } from '@dnd-kit/abstract';
-import { Badge } from './ui/badge';
+// import { Badge } from './ui/badge';
 
 type ItemProp = {
     index: number,
@@ -14,7 +13,7 @@ type ItemProp = {
 
 export function Item({ index, column, pregunta }: ItemProp) {
     const { ref, handleRef, isDragging } = useSortable({
-        id: pregunta.label as UniqueIdentifier,
+        id: pregunta.id,
         index,
         type: 'item',
         accept: 'item',
@@ -28,17 +27,19 @@ export function Item({ index, column, pregunta }: ItemProp) {
             ref={ref}
             data-dragging={isDragging}>
             <div className='flex items-center space-x-4'>
-                <Button ref={handleRef} variant="ghost" size="sm" className='w-9 p-0'>
-                    <GripVertical className="text-gray-500 h-4 w-4" />
-                </Button>
                 <div className='text-sm'>
                     {pregunta.label}
                 </div>
+                {/* <Badge variant="secondary">
+                </Badge> */}
+                <p className='text-gray-400'>
+                    {pregunta.tipo}
+                </p>
             </div>
             <div className='text-sm'>
-                <Badge variant="secondary">
-                    {pregunta.tipo}
-                </Badge>
+                <Button ref={handleRef} variant="ghost" size="sm" className='w-9 p-0'>
+                    <GripVertical className="text-gray-500 h-4 w-4" />
+                </Button>
             </div>
         </div>
     );

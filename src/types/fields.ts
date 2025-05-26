@@ -2,8 +2,8 @@ export type Field = {
   label: string
   tipo: string
   orden: number
-  core: boolean
-  id?: string
+  core?: boolean
+  id: string
   variable?: string
 }
 
@@ -18,24 +18,46 @@ export type TextField = Field & {
 }
 
 export type SelectField = Field & {
-  optiones: []
+  options: Option[]
 }
 
-export type SelectDependedField = Field & {
+export type SelectDependentField = Field & {
   dependiente: string,
-  optiones: {}
+  dependentOptions: DependentOptions
 }
 
-export type ComposeField = {
+export type ComposedField = {
+  id: string
   label: string,
   tipo: string,
   orden: number,
   core: boolean,
-  preguntasHijas?: [],
-  optiones?: []
+  preguntasHijas: (NumberField | TextField | SelectField | SelectDependentField)[],
+  options: []
 }
 
-export type Pregunta = NumberField | TextField | SelectField | SelectDependedField | ComposeField
+// export type CheckBoxField = Field
+
+export type FieldConEntity = Field & {
+  entidad: string
+}
+
+export type Pregunta = NumberField | TextField | SelectField | SelectDependentField | ComposedField
+
+export type PreguntaWithSectionId = Pregunta & { sectionId: string }
+
+export type Option = {
+  description: string,
+  value: string
+}
+
+export type DependentOptions = {
+  [key: string]: Option[]
+}
+
+export type FieldWithEntity = Field & {
+  entidad: string
+}
 
 
 
