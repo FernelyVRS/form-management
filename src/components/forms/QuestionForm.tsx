@@ -184,7 +184,7 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                         )}
                     />
                 )}
-                {questionType === 'number' && (
+                {questionType === 'numeric' && (
                     <NumberTypeFields />
                 )}
                 {questionType === 'text' && (

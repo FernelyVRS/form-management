@@ -35,15 +35,10 @@ const SelectDependedTypeFields = ({ questionsSameSection }: SelectDependedTypeFi
 
         questionsWithSelectType?.map((question) => question.options.map(option => {
             if (question.id == currentDependentQuestion) {
-                composedOptions[option.value] = [
-                    // { description: '', value: '' }
-                ]
+                composedOptions[option.value] = currentDependentOptions[option.value]
+                    ? []
+                    : [{ description: '', value: '' }]
             }
-            // if (currentDependentOptions[option.value] == undefined) {
-            //     composedOptions[option.value] = [
-            //         { description: '', value: '' }
-            //     ]
-            // }
         }
         ))
         // console.log('composedOptions ---> ', currentDependentOptions[1])

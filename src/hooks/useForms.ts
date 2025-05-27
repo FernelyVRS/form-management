@@ -20,7 +20,8 @@ export function useFetchForm(id: number = 1) {
     const query = useQuery<Seccion[], Error>({
         queryKey: ['form'],
         queryFn: async () => {
-            const data: Seccion[] = await getFormById(id);
+            // const data: Seccion[] = await getFormById(id);
+            const data: Seccion[] = formStructure as Seccion[];
             return data;
         },
         gcTime: 0, // optional, avoids caching
