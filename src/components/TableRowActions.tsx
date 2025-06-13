@@ -4,6 +4,7 @@ import { Button } from './ui/button'
 import FormDialog from './FormDialog'
 import EditQuestion from './forms/EditQuestion'
 import { useState } from 'react'
+import DeleteQuestion from './forms/DeleteQuestion'
 
 
 type TableRowActionsProps = {
@@ -15,6 +16,8 @@ const TableRowActions = ({ rowId }: TableRowActionsProps) => {
     const [openEditQuestionDialog, setOpenEditQuestionDialog] = useState(false)
     const [isOpenDropDown, setIsOpenDropDown] = useState(false)
 
+    const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false)
+
     const handlerClose = () => {
         setOpenEditQuestionDialog(false)
     }
@@ -24,11 +27,24 @@ const TableRowActions = ({ rowId }: TableRowActionsProps) => {
         setOpenEditQuestionDialog(true)
     }
 
+    const handlerOpenDeleteDialog = () => {
+        setIsOpenDropDown(false)
+        setIsOpenDeleteDialog(true)
+    }
+
+    const handleCloseDeleteDialog = () => {
+        setIsOpenDeleteDialog(false)
+    }
+
     return (
         <>
-            <FormDialog open={openEditQuestionDialog} handlerClose={handlerClose} title='Editar pregunta'>
+            <FormDialog open={openEditQuestionDialog} handlerClose={handlerClose} title='Editar pregunta' wight='800px'>
                 <EditQuestion setOpen={setOpenEditQuestionDialog} questionId={rowId} />
-                <div></div>
+            </FormDialog>
+
+            <FormDialog open={isOpenDeleteDialog} handlerClose={handleCloseDeleteDialog} title='Eliminar pregunta'
+                description='¿Estás seguro de que deseas eliminar esta pregunta?' wight=''>
+                <DeleteQuestion handlerClose={handleCloseDeleteDialog} questionId={rowId} />
             </FormDialog>
 
             <DropdownMenu open={isOpenDropDown} onOpenChange={setIsOpenDropDown}>
@@ -39,11 +55,11 @@ const TableRowActions = ({ rowId }: TableRowActionsProps) => {
                 </DropdownMenuTrigger>
                 {isOpenDropDown &&
                     <DropdownMenuContent align='end' className='w-[150px] '>
-                        <DropdownMenuItem onClick={() => handleOpenDialog()} >
+                        <DropdownMenuItem onClick={handleOpenDialog} >
                             <Edit />
                             <span> Editar</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={handlerOpenDeleteDialog}>
                             <Trash2 className='text-red-500' />
                             <span className='text-red-500'> Eliminar</span>
                         </DropdownMenuItem>

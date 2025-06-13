@@ -65,25 +65,27 @@ const SelectDependedTypeFields = ({ questionsSameSection }: SelectDependedTypeFi
                 rules={{ required: "Selecciona de la cual dependa" }}
                 render={({ field }) => (
                     <FormItem className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
+                        <Label htmlFor="dependent" className="text-right">
                             Dependiente
                         </Label>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={currentSection == undefined}>
-                            <SelectTrigger className="col-span-3 w-[345px]">
-                                <SelectValue placeholder="Selecciona un tipo de pregunta" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectLabel>Tipos de preguntas</SelectLabel>
-                                    {
-                                        questionSameSection?.map(x =>
-                                            <SelectItem key={x.id} value={x.id}>{x.label}</SelectItem>
-                                        )
-                                    }
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
+                        <div >
+                            <Select onValueChange={field.onChange} value={field.value || ''} disabled={currentSection == undefined}>
+                                <SelectTrigger className="col-span-3 w-[345px]">
+                                    <SelectValue placeholder="Selecciona un tipo de pregunta" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Tipos de preguntas</SelectLabel>
+                                        {
+                                            questionSameSection?.map(x =>
+                                                <SelectItem key={x.id} value={x.id}>{x.label}</SelectItem>
+                                            )
+                                        }
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </div>
                     </FormItem>
                 )} />
 

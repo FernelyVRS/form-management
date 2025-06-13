@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Label } from '../ui/label'
 import { Card } from '../ui/card'
 import { Button } from '../ui/button'
@@ -8,17 +8,18 @@ import CreateQuestion from './CreateQuestion'
 import { useFieldArray, useFormContext } from 'react-hook-form'
 import { Pregunta, PreguntaWithSectionId } from '@/types'
 
-type ComposedTypeFieldsProps = {
-    onAddPreguntaHija: (data: PreguntaWithSectionId) => void
-}
 
-const ComposedTypeFields = ({ onAddPreguntaHija }: ComposedTypeFieldsProps) => {
+const ComposedTypeFields = () => {
     const [openPreguntaHijaDialog, setOpenPreguntaHijaDialog] = useState(false)
     const { control } = useFormContext<PreguntaWithSectionId>()
     const preguntasHijas = useFieldArray({ control, name: 'preguntasHijas' })
 
     const onAddPreguntaHija1 = (data: Pregunta) => {
         preguntasHijas.append(data)
+    }
+
+    const handlerClosePreguntaHijaDialog = () => {
+        setOpenPreguntaHijaDialog(false)
     }
 
     return (
@@ -42,10 +43,10 @@ const ComposedTypeFields = ({ onAddPreguntaHija }: ComposedTypeFieldsProps) => {
                                             {preguntaHija.tipo}
                                         </div>
                                         <div className="col-span-1">
-                                            <Button variant='ghost' size='sm'
+                                            <Button id='editChildQuestion' variant='ghost' size='sm'
                                             // onClick={() => preguntasHijas.remove(index)}
                                             ><Pencil /></Button>
-                                            <Button variant='ghost' size='sm' onClick={() => preguntasHijas.remove(index)}><Trash2 /></Button>
+                                            <Button id='removeEditQuestion' variant='ghost' size='sm' onClick={() => preguntasHijas.remove(index)}><Trash2 /></Button>
                                         </div>
                                     </div>
                                 </Card>
@@ -53,12 +54,12 @@ const ComposedTypeFields = ({ onAddPreguntaHija }: ComposedTypeFieldsProps) => {
                         ))
                     }
                     <div className="flex justify-start">
-                        <Button type="button" variant="outline" size="sm" onClick={() => { setOpenPreguntaHijaDialog(true) }}>
+                        <Button id='addChildQuestion' type="button" variant="outline" size="sm" onClick={() => { setOpenPreguntaHijaDialog(true) }}>
                             <Plus />
                             Agregar pregunta hija
                         </Button>
-                        <FormDialog open={openPreguntaHijaDialog} setOpen={setOpenPreguntaHijaDialog} title="Crear pregunta hija" description="En esta parte podrás crear nueva preguntas">
-                            <CreateQuestion onAddQuestion={onAddPreguntaHija} setOpen={setOpenPreguntaHijaDialog} isChildQuestions />
+                        <FormDialog open={openPreguntaHijaDialog} handlerClose={handlerClosePreguntaHijaDialog} title="Crear pregunta hija" description="En esta parte podrás crear nueva preguntas">
+                            <CreateQuestion onAddPreguntaHija={onAddPreguntaHija1} setOpen={setOpenPreguntaHijaDialog} isChildQuestions />
                         </FormDialog>
                     </div>
                 </div>

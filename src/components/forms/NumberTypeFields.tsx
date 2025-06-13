@@ -19,7 +19,7 @@ const NumberTypeFields = () => {
                             Max
                         </Label>
                         <div className="col-span-3">
-                            <Input id="name" {...field} placeholder="Máximo" />
+                            <Input id="name" {...field} value={field.value || ''} placeholder="Máximo" />
                             <FormMessage />
                         </div>
                     </FormItem>
@@ -35,7 +35,7 @@ const NumberTypeFields = () => {
                             Min
                         </Label>
                         <div className="col-span-3">
-                            <Input id="name" {...field} placeholder="Mínimo" />
+                            <Input id="name" {...field} value={field.value || ''} placeholder="Mínimo" />
                             <FormMessage />
                         </div>
                     </FormItem>

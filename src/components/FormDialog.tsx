@@ -13,24 +13,27 @@ type FormDialogProps = {
     title: string;
     description?: string
     children: ReactNode;
+    wight?: string;
 };
 
-const FormDialog = ({ children, open, handlerClose, title, description }: FormDialogProps) => {
+const FormDialog = ({ children, open, handlerClose, title, description, wight }: FormDialogProps) => {
     return (
-        <Dialog open={open} onOpenChange={handlerClose}>
-            <DialogContent className="sm:max-w-[800px]" >
+        <Dialog
+            open={open}
+            onOpenChange={handlerClose}
+        >
+            <DialogContent
+                className={`sm:max-w-[${wight}]`}
+            // onClick={(e) => e.stopPropagation()} // Prevent clicks from bubbling
+            >
                 <DialogHeader>
-                    <DialogTitle>
-                        {title}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {description ?? ""}
-                    </DialogDescription>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription>{description ?? ""}</DialogDescription>
                 </DialogHeader>
                 {children}
             </DialogContent>
         </Dialog>
-    )
-}
+    );
+};
 
 export default FormDialog

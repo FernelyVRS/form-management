@@ -5,13 +5,13 @@ import { useEffect, } from 'react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
-import { Pregunta, PreguntaWithSectionId } from '@/types';
+import { PreguntaWithSectionId } from '@/types';
 import NumberTypeFields from './NumberTypeFields';
 import SelectTypeFields from './SelectTypeFields';
 import SelectDependedTypeFields from './SelectDependedTypeFields';
 import ComposedTypeFields from './ComposedTypeFields';
 import { useFormStructureStore } from '@/store/formStructure';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 
 type QuestionFormProps = {
@@ -28,7 +28,6 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
     const { handleSubmit, reset, watch, control, formState } = methods
 
     const questionType = watch('tipo')
-    const preguntasHijas = useFieldArray({ control, name: 'preguntasHijas' })
 
     const sectionsList: { id: string, titulo: string }[] = data?.filter(x => x.preguntas.length != 0).map(x =>
     ({
@@ -36,8 +35,11 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
         titulo: x.titulo
     })) || []
 
-    const onAddPreguntaHija = (data: Pregunta) => {
-        preguntasHijas.append(data)
+    const handlerFormSubmit = (e: React.FormEvent) => {
+        if (isChild) {
+            e.stopPropagation()
+        }
+        handleSubmit(onSubmit)(e)
     }
 
     useEffect(() => {
@@ -49,7 +51,7 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
 
     return (
         // <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handlerFormSubmit}>
             <div className="grid gap-4 py-4">
                 <FormField
                     name="label"
@@ -60,10 +62,12 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                             <Label htmlFor="label" className="text-right">
                                 Label
                             </Label>
-                            <FormControl className="col-span-3">
-                                <Input id="label" {...field} placeholder="Label" />
-                            </FormControl>
-                            <FormMessage />
+                            <div className="col-span-3">
+                                <FormControl>
+                                    <Input id="label" {...field} value={field.value || ''} placeholder="Label" />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
                         </FormItem>
                     )}
                 />
@@ -73,25 +77,27 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                     rules={{ required: "Selecciona un tipo de pregunta" }}
                     render={({ field }) => (
                         <FormItem className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right" >
+                            <Label htmlFor="type" className="text-right" >
                                 Tipo
                             </Label>
                             <div className="col-span-3">
-                                <Select onValueChange={field.onChange} defaultValue={field.value} >
-                                    <SelectTrigger className="col-span-3 w-[345px]">
-                                        <SelectValue placeholder="Selecciona un tipo de pregunta" />
-                                    </SelectTrigger>
-                                    <SelectContent >
-                                        <SelectGroup>
-                                            <SelectLabel>Tipos de preguntas</SelectLabel>
-                                            {
-                                                questionTypes.map(x =>
-                                                    <SelectItem key={x} value={x}>{x}</SelectItem>
-                                                )
-                                            }
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
+                                <FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value || ''} >
+                                        <SelectTrigger className="col-span-3 w-[345px]">
+                                            <SelectValue placeholder="Selecciona un tipo de pregunta" />
+                                        </SelectTrigger>
+                                        <SelectContent >
+                                            <SelectGroup>
+                                                <SelectLabel>Tipos de preguntas</SelectLabel>
+                                                {
+                                                    questionTypes.map(x =>
+                                                        <SelectItem key={x} value={x}>{x}</SelectItem>
+                                                    )
+                                                }
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
                                 <FormMessage />
                             </div>
                         </FormItem>
@@ -103,11 +109,13 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                     rules={{ required: "Campo requerido" }}
                     render={({ field }) => (
                         <FormItem className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">
+                            <Label htmlFor="order" className="text-right">
                                 Orden
                             </Label>
                             <div className="col-span-3">
-                                <Input id="name" {...field} placeholder="Orden" />
+                                <FormControl>
+                                    <Input id="order" {...field} value={field.value || ''} placeholder="Orden" />
+                                </FormControl>
                                 <FormMessage />
                             </div>
                         </FormItem>
@@ -118,14 +126,14 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                     control={control}
                     render={({ field }) => (
                         <FormItem className="grid grid-cols-4 items-center gap-4 ">
-                            <Label htmlFor="name" className="text-right">
+                            <Label htmlFor="core" className="text-right">
                                 Core
                             </Label>
                             <div className="border rounded-md p-2.5 flex gap-3 md:col-span-2 col-span-3">
                                 <FormControl>
-                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    <Checkbox id='core' checked={field.value || false} onCheckedChange={field.onChange} />
                                 </FormControl>
-                                <FormLabel htmlFor="name" className="text-right font-normal">
+                                <FormLabel htmlFor="core" className="text-right font-normal">
                                     Pregunta core
                                 </FormLabel>
                             </div>
@@ -140,25 +148,27 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                         rules={{ required: 'Campo requerido' }}
                         render={({ field }) => (
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">
+                                <Label htmlFor="sectionId" className="text-right">
                                     Sección
                                 </Label>
                                 <div className="">
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={sectionsList.length == 0}>
-                                        <SelectTrigger className="col-span-3 w-[345px]">
-                                            <SelectValue placeholder="Selecciona una sección" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectLabel>Pregunta de la cual depende</SelectLabel>
-                                                {
-                                                    sectionsList.map(x =>
-                                                        <SelectItem value={x.id}>{x.titulo}</SelectItem>
-                                                    )
-                                                }
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
+                                    <FormControl>
+                                        <Select onValueChange={field.onChange} value={field.value || ''} disabled={sectionsList.length == 0}>
+                                            <SelectTrigger className="col-span-3 w-[345px]">
+                                                <SelectValue placeholder="Selecciona una sección" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectLabel>Pregunta de la cual depende</SelectLabel>
+                                                    {
+                                                        sectionsList.map(x =>
+                                                            <SelectItem key={x.id} value={x.id}>{x.titulo}</SelectItem>
+                                                        )
+                                                    }
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
                                     <FormMessage />
                                 </div>
                             </div>
@@ -173,11 +183,13 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                         rules={{ required: 'Campo requerido' }}
                         render={({ field }) => (
                             <FormItem className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">
+                                <Label htmlFor="variable" className="text-right">
                                     Variable
                                 </Label>
                                 <div className="col-span-3">
-                                    <Input id="name" className="col-span-3" {...field} placeholder="Variable" />
+                                    <FormControl>
+                                        <Input id="variable" {...field} value={field.value || ''} placeholder="Variable" />
+                                    </FormControl>
                                     <FormMessage />
                                 </div>
                             </FormItem>
@@ -194,11 +206,13 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                         rules={{ required: 'Campo requerido' }}
                         render={({ field }) => (
                             <FormItem className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">
+                                <Label htmlFor="maxLength" className="text-right">
                                     MaxLength
                                 </Label>
                                 <div className="col-span-3">
-                                    <Input id="name" {...field} placeholder="Máximo" />
+                                    <FormControl>
+                                        <Input id="maxLength" {...field} value={field.value || ''} placeholder="Máximo" />
+                                    </FormControl>
                                     <FormMessage />
                                 </div>
                             </FormItem>
@@ -212,7 +226,7 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                     <SelectDependedTypeFields questionsSameSection={data} />
                 )}
                 {questionType === 'composed' && (
-                    <ComposedTypeFields onAddPreguntaHija={onAddPreguntaHija} />
+                    <ComposedTypeFields />
                 )}
             </div>
             <div className="flex justify-end gap-2">

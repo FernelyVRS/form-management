@@ -1,4 +1,3 @@
-import React from 'react'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
@@ -24,16 +23,16 @@ const SelectTypeFields = () => {
                     {
                         options.fields.map((_, index) => (
                             <>
-                                <Input className="col-span-2" {...register(`options.${index}.value`)} placeholder="Valor" />
-                                <Input className="col-span-4" {...register(`options.${index}.description`)} placeholder="Descripción" />
-                                <Button variant='destructive' onClick={() => options.remove(index)}><Trash2 /></Button>
+                                <Input id='value' className="col-span-2" {...register(`options.${index}.value`)} placeholder="Valor" />
+                                <Input id='description' className="col-span-4" {...register(`options.${index}.description`)} placeholder="Descripción" />
+                                <Button id='removeSelectOption' variant='destructive' onClick={() => options.remove(index)}><Trash2 /></Button>
                             </>
                         ))
                     }
                 </div>
             </div>
             <div className="flex justify-start">
-                <Button type="button" variant="outline" size="sm" onClick={() => { options.append({ description: "", value: "" }) }}>
+                <Button id='addSelectOption' type="button" variant="outline" size="sm" onClick={() => { options.append({ description: "", value: "" }) }}>
                     <Plus />
                     Agregar opción
                 </Button>
