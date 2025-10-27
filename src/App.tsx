@@ -1,7 +1,7 @@
-import './App.css'
+import './styles/App.css'
 import { useFetchForm } from './hooks/useForms'
 import { useFormStructureStore } from './store/formStructure'
-import Forms from './pages/Forms'
+import Forms from './features/forms/pages/FormPage'
 import { useEffect } from 'react'
 
 function App() {

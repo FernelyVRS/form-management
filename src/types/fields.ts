@@ -19,6 +19,7 @@ export type TextField = Field & {
 
 export type SelectField = Field & {
   options: Option[]
+  dynamicOptions?: boolean
 }
 
 export type SelectDependentField = Field & {

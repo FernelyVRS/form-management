@@ -13,18 +13,20 @@ type FormDialogProps = {
     title: string;
     description?: string
     children: ReactNode;
-    wight?: string;
+    width?: string; // Fixed typo
 };
 
-const FormDialog = ({ children, open, handlerClose, title, description, wight }: FormDialogProps) => {
+const FormDialog = ({ children, open, handlerClose, title, description, width }: FormDialogProps) => {
+    const dialogWidth = width ?? '800'; // Default to 800
+
     return (
         <Dialog
             open={open}
             onOpenChange={handlerClose}
         >
             <DialogContent
-                className={`sm:max-w-[${wight}]`}
-            // onClick={(e) => e.stopPropagation()} // Prevent clicks from bubbling
+                style={{ maxWidth: `${dialogWidth}px` }} // Use style instead of className
+                className="sm:w-full"
             >
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>

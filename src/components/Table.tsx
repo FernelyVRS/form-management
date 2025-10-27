@@ -2,10 +2,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import TableRowActions from './TableRowActions'
 
 type TableProps<T> = {
-    data: T[]
+    data: T[],
+    identifier?: string
 }
 
-const TableMod = <T,>({ data }: TableProps<T>) => {
+const TableMod = <T,>({ data, identifier }: TableProps<T>) => {
 
     const columns: string[] = Object.getOwnPropertyNames(data[0])
 
@@ -20,7 +21,7 @@ const TableMod = <T,>({ data }: TableProps<T>) => {
                                     <TableHead key={x} className='capitalize'>{x}</TableHead>
                                 )
                             }
-                            <TableHead className='capitalize'></TableHead>
+                            <TableHead className='capitalize' />
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -39,6 +40,7 @@ const TableMod = <T,>({ data }: TableProps<T>) => {
                                             rowId={
                                                 String(row['id' as keyof T])
                                             }
+                                            identifier={identifier}
                                         />
                                     </TableCell>
                                 </TableRow>

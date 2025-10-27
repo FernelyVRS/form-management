@@ -1,5 +1,5 @@
 import { Seccion } from '@/types/seccion'
-import { Button } from '../ui/button'
+import { Button } from '@/components/ui/button'
 import { useFormStructureStore } from '@/store/formStructure'
 import { PreguntaWithSectionId } from '@/types'
 import { FormProvider, useForm } from 'react-hook-form'
@@ -34,7 +34,8 @@ const DeleteQuestion = ({ handlerClose, questionId }: DeleteQuestionProps) => {
     const form = useForm<PreguntaWithSectionId>({
         defaultValues: {
             ...questionToDelete
-        }
+        },
+        shouldUnregister: true
     })
 
     const removeQuestion = () => {
@@ -56,32 +57,34 @@ const DeleteQuestion = ({ handlerClose, questionId }: DeleteQuestionProps) => {
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(removeQuestion)}>
-                <div className='flex gap-4'>
-                    <div className="w-full flex justify-center sm:space-x-6">
-                        <Button
-                            size="lg"
-                            variant="outline"
-                            disabled={isLoading}
-                            className="w-full hidden sm:block"
-                            type="button"
-                            onClick={handlerClose}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            size="lg"
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-red-500 hover:bg-red-400">
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Eliminando...
-                                </>
-                            ) : (
-                                <span>Eliminar</span>
-                            )}
-                        </Button>
+                <div className='grid gap-4 py-4'>
+                    <div className='flex gap-4'>
+                        <div className="w-full flex justify-center sm:space-x-6">
+                            <Button
+                                size="lg"
+                                variant="outline"
+                                disabled={isLoading}
+                                className="hidden sm:block"
+                                type="button"
+                                onClick={handlerClose}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                size="lg"
+                                type="submit"
+                                disabled={isLoading}
+                                className=" bg-red-500 hover:bg-red-400">
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Eliminando...
+                                    </>
+                                ) : (
+                                    <span>Eliminar</span>
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </form>

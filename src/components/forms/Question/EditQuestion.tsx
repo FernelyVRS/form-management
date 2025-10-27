@@ -3,6 +3,7 @@ import { FormProvider, useForm } from "react-hook-form"
 import QuestionForm from "./QuestionForm"
 import { useFormStructureStore } from "@/store/formStructure"
 import { Seccion } from "@/types/seccion"
+import { useState } from "react"
 
 type EditQuestionProps = {
     setOpen: (value: boolean) => void
@@ -21,7 +22,7 @@ const getPreguntasWithSectionId = (data: Seccion[], questionId: string) => {
 
         return undefined;
     }, undefined);
-
+    console.log('question to edit ---> ', question)
     return question
 }
 
@@ -30,15 +31,21 @@ const EditQuestion = ({ setOpen, questionId }: EditQuestionProps) => {
     const data = useFormStructureStore(store => store.formStructure)
     const setJsonFormStructure = useFormStructureStore(store => store.setFormStructure)
 
+    const [isLoading, setIsLoading] = useState(false); // Add local loading state
+
     const questionToEdit = getPreguntasWithSectionId(data, questionId)
+    const { id } = questionToEdit || {}
+
 
     const form = useForm<PreguntaWithSectionId>({
         defaultValues: {
             ...questionToEdit
-        }
+        },
+        shouldUnregister: true
     })
 
-    const editPregunta = (questionEdited: PreguntaWithSectionId) => {
+    const editPregunta = ({ questionEdited, questionId }: { questionEdited: PreguntaWithSectionId, questionId: string }) => {
+        questionEdited.id = questionId
         const sectionWithQuestionEdited = data.map(section => {
             if (section.id === questionEdited.sectionId) {
                 return {
@@ -56,7 +63,8 @@ const EditQuestion = ({ setOpen, questionId }: EditQuestionProps) => {
     }
 
     const onSubmit = (data: PreguntaWithSectionId) => {
-        editPregunta(data)
+        setIsLoading(true); // Set loading to true on submit
+        editPregunta({ questionEdited: data, questionId: id as string });
     }
 
     return (
@@ -65,9 +73,9 @@ const EditQuestion = ({ setOpen, questionId }: EditQuestionProps) => {
                 setOpen={setOpen}
                 onSubmit={onSubmit}
                 isChild={false}
+                isLoading={isLoading}
             />
         </FormProvider>
-        // <></>
     )
 }
 

@@ -1,38 +1,42 @@
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { useEffect, } from 'react';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
-import { Input } from '../ui/input';
-import { Checkbox } from '../ui/checkbox';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { PreguntaWithSectionId } from '@/types';
-import NumberTypeFields from './NumberTypeFields';
-import SelectTypeFields from './SelectTypeFields';
-import SelectDependedTypeFields from './SelectDependedTypeFields';
-import ComposedTypeFields from './ComposedTypeFields';
+import NumberTypeFields from '../NumberTypeFields';
+import SelectTypeFields from '../SelectTypeFields';
+import SelectDependedTypeFields from '../SelectDependedTypeFields';
+import ComposedTypeFields from '../ComposedTypeFields';
 import { useFormStructureStore } from '@/store/formStructure';
 import { useFormContext } from 'react-hook-form';
+import { Loader2 } from 'lucide-react';
 
 
 type QuestionFormProps = {
     setOpen: (open: boolean) => void
     onSubmit: (data: PreguntaWithSectionId) => void,
     isChild?: boolean
+    isLoading?: boolean
 }
 
 const questionTypes = ['text', 'numeric', 'select', 'selectDependent', 'composed'] as const
 
-const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
+const QuestionForm = ({ setOpen, onSubmit, isChild, isLoading }: QuestionFormProps) => {
     const data = useFormStructureStore(store => store.formStructure)
     const methods = useFormContext<PreguntaWithSectionId>()
     const { handleSubmit, reset, watch, control, formState } = methods
 
     const questionType = watch('tipo')
 
+    const isDisabled = isLoading // Use the passed isLoading prop
+
     const sectionsList: { id: string, titulo: string }[] = data?.filter(x => x.preguntas.length != 0).map(x =>
     ({
         id: x.id,
-        titulo: x.titulo
+        titulo: x.titulo,
     })) || []
 
     const handlerFormSubmit = (e: React.FormEvent) => {
@@ -44,8 +48,8 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
 
     useEffect(() => {
         if (formState.isSubmitSuccessful) {
-            reset()
             setOpen(false)
+            reset()
         }
     }, [formState])
 
@@ -131,7 +135,12 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
                             </Label>
                             <div className="border rounded-md p-2.5 flex gap-3 md:col-span-2 col-span-3">
                                 <FormControl>
-                                    <Checkbox id='core' checked={field.value || false} onCheckedChange={field.onChange} />
+                                    <Checkbox
+                                        id='core'
+                                        defaultChecked={false}
+                                        checked={field.value === undefined ? false : field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
                                 </FormControl>
                                 <FormLabel htmlFor="core" className="text-right font-normal">
                                     Pregunta core
@@ -231,7 +240,16 @@ const QuestionForm = ({ setOpen, onSubmit, isChild }: QuestionFormProps) => {
             </div>
             <div className="flex justify-end gap-2">
                 <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancelar</Button>
-                <Button type="submit">Guardar</Button>
+                <Button type="submit" disabled={isDisabled} className="flex items-center">
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Guardando...
+                        </>
+                    ) : (
+                        <span>Guardar</span>
+                    )}
+                </Button>
             </div>
         </form >
         // </Form>

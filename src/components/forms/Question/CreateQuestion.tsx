@@ -3,6 +3,7 @@ import { FormProvider, useForm } from "react-hook-form"
 import QuestionForm from "./QuestionForm"
 import { useFormStructureStore } from "@/store/formStructure"
 import { ulid } from 'ulid'
+import { useState } from "react"
 
 type CreateQuestionProps = {
     setOpen: (value: boolean) => void
@@ -15,22 +16,14 @@ const CreateQuestion = ({ setOpen, isChildQuestions, onAddPreguntaHija }: Create
     const data = useFormStructureStore(store => store.formStructure)
     const setJsonFormStructure = useFormStructureStore(store => store.setFormStructure)
 
-    const form = useForm<PreguntaWithSectionId>({
+    const [isLoading, setIsLoading] = useState(false); // Add local loading state
+
+    const questionFormMethods = useForm<PreguntaWithSectionId>({
         defaultValues: {
             id: "",
-            // label: "",
-            // options: [{ description: "", value: "" }],
-            // options: [{ description: "", value: "" }],
-            // preguntasHijas: [
-            //     {
-            //         label: "Pregunta hija",
-            //         tipo: "text",
-            //         orden: 0,
-            //         core: false,
-            //         variable: "TieneRadio",
-            //     }
-            // ],
-        }
+            core: false,
+        },
+        shouldUnregister: true
     })
 
     const addPreguntaToSection = (newQuestion: PreguntaWithSectionId) => {
@@ -51,6 +44,7 @@ const CreateQuestion = ({ setOpen, isChildQuestions, onAddPreguntaHija }: Create
     }
 
     const onSubmit = (data: PreguntaWithSectionId) => {
+        setIsLoading(true); // Set loading to true on submit
         data.id = ulid()
         if (isChildQuestions && onAddPreguntaHija) {
             onAddPreguntaHija(data)
@@ -63,11 +57,13 @@ const CreateQuestion = ({ setOpen, isChildQuestions, onAddPreguntaHija }: Create
     //TODO : reset specific values when change "Tipo"
 
     return (
-        <FormProvider {...form}>
+        <FormProvider {...questionFormMethods}>
             <QuestionForm
                 setOpen={setOpen}
                 onSubmit={onSubmit}
-                isChild={isChildQuestions} />
+                isChild={isChildQuestions}
+                isLoading={isLoading}
+            />
         </FormProvider>
     )
 

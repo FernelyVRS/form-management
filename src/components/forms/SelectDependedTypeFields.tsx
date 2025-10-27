@@ -89,7 +89,7 @@ const SelectDependedTypeFields = ({ questionsSameSection }: SelectDependedTypeFi
                     </FormItem>
                 )} />
 
-            <div className="grid grid-cols-1 items-center gap-4">
+            <div className="grid grid-cols-1 items-center gap-4 mt-2">
                 <Label htmlFor="name" className="text-right mb-1">
                     Opciones
                 </Label>
