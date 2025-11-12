@@ -2,11 +2,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Edit, Ellipsis, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import FormDialog from './FormDialog'
-import EditQuestion from './forms/Question/EditQuestion'
+import EditQuestion from '../features/forms/components/Question/EditQuestion'
 import { useState } from 'react';
-import DeleteQuestion from './forms/Question/DeleteQuestion';
-import EditSection from './forms/Section/EditSection'
-import DeleteSection from './forms/Section/DeleteSection'
+import DeleteQuestion from '../features/forms/components/Question/DeleteQuestion';
+import EditSection from '../features/forms/components/Section/EditSection'
+import DeleteSection from '../features/forms/components/Section/DeleteSection'
 
 
 type TableRowActionsProps = {

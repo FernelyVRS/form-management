@@ -4,7 +4,7 @@ import { Card } from '../ui/card'
 import { Button } from '../ui/button'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import FormDialog from '../FormDialog'
-import CreateQuestion from './Question/CreateQuestion'
+import CreateQuestion from '../../features/forms/components/Question/CreateQuestion'
 import { useFieldArray, useFormContext } from 'react-hook-form'
 import { Pregunta, PreguntaWithSectionId } from '@/types'
 

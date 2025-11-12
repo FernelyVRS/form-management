@@ -1,8 +1,9 @@
 import './styles/App.css'
 import { useFetchForm } from './hooks/useForms'
 import { useFormStructureStore } from './store/formStructure'
-import Forms from './features/forms/pages/FormPage'
 import { useEffect } from 'react'
+import { RouterProvider } from "react-router";
+import { router } from './router'
 
 function App() {
   // const { mutate, isSuccess } = usePostForm()
@@ -26,11 +27,8 @@ function App() {
   }, [isSuccess])
 
   return (
-    <>
-      {
-        jsonFormStructure.length ? <Forms /> : <div>Loading...</div>
-      }
-    </>
+    //
+    <RouterProvider router={router} />
   )
 }
 

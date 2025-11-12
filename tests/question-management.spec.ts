@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const baseURL = 'http://localhost:5174';
+const baseURL = 'http://localhost:5173';
 
 test.describe.serial('Question Management Tests', () => {
     test.setTimeout(60000);

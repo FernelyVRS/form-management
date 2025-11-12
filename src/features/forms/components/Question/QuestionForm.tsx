@@ -6,10 +6,10 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PreguntaWithSectionId } from '@/types';
-import NumberTypeFields from '../NumberTypeFields';
-import SelectTypeFields from '../SelectTypeFields';
-import SelectDependedTypeFields from '../SelectDependedTypeFields';
-import ComposedTypeFields from '../ComposedTypeFields';
+import NumberTypeFields from '../../../../components/forms/NumberTypeFields';
+import SelectTypeFields from '../../../../components/forms/SelectTypeFields';
+import SelectDependedTypeFields from '../../../../components/forms/SelectDependedTypeFields';
+import ComposedTypeFields from '../../../../components/forms/ComposedTypeFields';
 import { useFormStructureStore } from '@/store/formStructure';
 import { useFormContext } from 'react-hook-form';
 import { Loader2 } from 'lucide-react';
@@ -33,7 +33,7 @@ const QuestionForm = ({ setOpen, onSubmit, isChild, isLoading }: QuestionFormPro
 
     const isDisabled = isLoading // Use the passed isLoading prop
 
-    const sectionsList: { id: string, titulo: string }[] = data?.filter(x => x.preguntas.length != 0).map(x =>
+    const sectionsList: { id: string, titulo: string }[] = data?.filter(x => x.preguntas.length != 1).map(x =>
     ({
         id: x.id,
         titulo: x.titulo,

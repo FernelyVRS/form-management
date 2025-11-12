@@ -1,5 +1,5 @@
-import CreateQuestion from "@/components/forms/Question/CreateQuestion";
-import CreateSection from "@/components/forms/Section/CreateSection";
+import CreateQuestion from "@/features/forms/components/Question/CreateQuestion";
+import CreateSection from "@/features/forms/components/Section/CreateSection";
 import FormDialog from "@/components/FormDialog";
 import TableMod from "@/components/Table";
 import Treednd from "@/components/dnd/Treednd";
@@ -13,6 +13,7 @@ import { Seccion } from "@/types/seccion";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useFormStructureStore } from "@/store/formStructure";
+import Index from "../components/FormList";
 
 const Forms = () => {
     const data = useFormStructureStore(store => store.formStructure)
@@ -23,7 +24,7 @@ const Forms = () => {
     const seccionesSinPreguntas = data.map(({ preguntas, ...rest }) => rest)
 
     const preguntasPorSeccion = data.flatMap(seccion =>
-        seccion.preguntas.map(pregunta =>
+        seccion?.preguntas.map(pregunta =>
         ({
             ...pregunta,
             entidad: seccion.entidad
@@ -71,6 +72,7 @@ const Forms = () => {
 
     return (
         <div>
+            {/* <Index /> */}
             <Tabs defaultValue="structure" className="flex w-full flex-col justify-start gap-6">
                 <TabsList className='h-10 text-sm'>
                     <TabsTrigger value='structure' className=''>
@@ -108,7 +110,7 @@ const Forms = () => {
                         <div className='flex justify-between mb-2'>
                             <Input placeholder='Filtrar por titulo' className='w-1/4' />
                             <Button variant="outline" onClick={() => setOpenSectionDialog(true)}><Plus /> Crear</Button>
-                            <FormDialog open={openSectionDialog} handlerClose={handlerClose} title="Crear Sección" description="Crear una nueva sección" wight="800">
+                            <FormDialog open={openSectionDialog} handlerClose={handlerClose} title="Crear Sección" description="Crear una nueva sección" width="800">
                                 <CreateSection handlerClose={handlerClose} />
                             </FormDialog>
                         </div>
@@ -120,7 +122,7 @@ const Forms = () => {
                         <div className='flex justify-between mb-2'>
                             <Input placeholder='Filtrar por titulo' className='w-1/4' />
                             <Button variant="outline" onClick={() => setOpenQuestionDialog(true)}><Plus /> Crear</Button>
-                            <FormDialog open={openQuestionDialog} handlerClose={handlerClose} title="Crear Pregunta" description="Crear una nueva pregunta" wight="800">
+                            <FormDialog open={openQuestionDialog} handlerClose={handlerClose} title="Crear Pregunta" description="Crear una nueva pregunta" width="800">
                                 <CreateQuestion setOpen={setOpenQuestionDialog} />
                             </FormDialog>
                         </div>

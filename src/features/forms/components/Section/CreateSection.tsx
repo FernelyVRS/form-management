@@ -16,13 +16,14 @@ const CreateSection = ({ handlerClose }: CreateSectionProps) => {
     const [isLoading, setIsLoading] = useState(false); // Add local loading state
 
     const sectionFormMethods = useForm<Seccion>({
-        defaultValues: { preguntas: [] }, shouldUnregister: true
+        defaultValues: { preguntas: [] },
     })
 
     const addSection = (newSection: Seccion) => {
         newSection.id = ulid() // Generate a unique ID for the new section
         let newSections = [...data, newSection]
         setJsonFormStructure(newSections)
+        console.log(data)
     }
 
     const onSubmit = (data: Seccion) => {
