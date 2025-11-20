@@ -5,14 +5,14 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { ReactNode } from "react"
+import { ReactElement } from "react"
 
 type FormDialogProps = {
     open: boolean;
     handlerClose: () => void;
     title: string;
     description?: string
-    children: ReactNode;
+    children: ReactElement;
     width?: string; // Fixed typo
 };
 

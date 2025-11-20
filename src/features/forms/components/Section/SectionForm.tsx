@@ -16,13 +16,13 @@ type SectionFormProps = {
 
 const SectionForm = ({ handlerClose, onSubmit, isLoading }: SectionFormProps) => { // Accept isLoading prop
     const sectionFormMethods = useFormContext<Seccion>()
-    const { handleSubmit, control } = sectionFormMethods
+    const { handleSubmit, control, getValues } = sectionFormMethods
 
     const isDisabled = isLoading // Use the passed isLoading prop
 
     const handleSave = () => {
         if (isDisabled) return
-        onSubmit(sectionFormMethods.getValues())
+        onSubmit(getValues())
     }
 
     return (

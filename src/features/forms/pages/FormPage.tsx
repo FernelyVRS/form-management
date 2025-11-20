@@ -13,7 +13,6 @@ import { Seccion } from "@/types/seccion";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useFormStructureStore } from "@/store/formStructure";
-import Index from "../components/FormList";
 
 const Forms = () => {
     const data = useFormStructureStore(store => store.formStructure)
