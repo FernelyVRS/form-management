@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FormManagementApi", "FormManagementApi\FormManagementApi.csproj", "{9B688C31-C1A2-4601-BC64-AB2D48D3E844}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9B688C31-C1A2-4601-BC64-AB2D48D3E844}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B688C31-C1A2-4601-BC64-AB2D48D3E844}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B688C31-C1A2-4601-BC64-AB2D48D3E844}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B688C31-C1A2-4601-BC64-AB2D48D3E844}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
