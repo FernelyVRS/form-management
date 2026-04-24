@@ -1,0 +1,252 @@
+[
+  {
+    "id": "servicios_basicos",
+    "type": "section",
+    "title": "Servicios Básicos",
+    "entity": "Hogar",
+    "order": 1,
+    "items": [
+      {
+        "id": "cantidad_hombres",
+        "type": "field",
+        "component": "number",
+        "label": "Cantidad Hombres",
+        "order": 1,
+        "validation": {
+          "required": true,
+          "min": 0,
+          "max": 10
+        }
+      },
+      {
+        "id": "cantidad_mujeres",
+        "type": "field",
+        "component": "number",
+        "label": "Cantidad Mujeres",
+        "order": 2,
+        "validation": {
+          "required": true,
+          "min": 0,
+          "max": 10
+        }
+      },
+      {
+        "id": "total_personas",
+        "type": "field",
+        "component": "number",
+        "label": "Total Personas",
+        "order": 3,
+        "validation": {
+          "required": true,
+          "min": 0,
+          "max": 10
+        }
+      }
+    ]
+  },
+  {
+    "id": "equipamiento_hogar",
+    "type": "section",
+    "title": "Equipamiento del hogar",
+    "entity": "detalleHogar",
+    "order": 2,
+    "items": [
+      {
+        "id": "equipamiento_group",
+        "type": "group",
+        "label": "En el hogar se cuenta con:",
+        "order": 1,
+        "items": [
+          {
+            "id": "tiene_television",
+            "type": "field",
+            "component": "select",
+            "label": "Televisión",
+            "options": [
+              {
+                "label": "Sí",
+                "value": "1"
+              },
+              {
+                "label": "No",
+                "value": "2"
+              },
+              {
+                "label": "No sabe",
+                "value": "98"
+              }
+            ]
+          },
+          {
+            "id": "tiene_computadora",
+            "type": "field",
+            "component": "select",
+            "label": "Computadora",
+            "options": [
+              {
+                "label": "Sí",
+                "value": "1"
+              },
+              {
+                "label": "No",
+                "value": "2"
+              },
+              {
+                "label": "No sabe",
+                "value": "98"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "direccion",
+    "type": "section",
+    "title": "Dirección",
+    "entity": "Vivienda",
+    "order": 3,
+    "items": [
+      {
+        "id": "calle",
+        "type": "field",
+        "component": "text",
+        "label": "Calle",
+        "order": 1,
+        "validation": {
+          "required": true,
+          "maxLength": 30
+        }
+      },
+      {
+        "id": "entre_calle",
+        "type": "field",
+        "component": "text",
+        "label": "Entre calle",
+        "order": 2,
+        "validation": {
+          "maxLength": 30
+        }
+      },
+      {
+        "id": "calles_asfaltadas",
+        "type": "field",
+        "component": "select",
+        "label": "¿La calle está asfaltada?",
+        "order": 3,
+        "options": [
+          {
+            "label": "Sí",
+            "value": "1"
+          },
+          {
+            "label": "No",
+            "value": "2"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "miembros_hogar",
+    "type": "section",
+    "title": "Características Miembro del Hogar",
+    "entity": "Miembros",
+    "order": 4,
+    "items": [
+      {
+        "id": "nombre",
+        "type": "field",
+        "component": "text",
+        "label": "Nombres",
+        "order": 1,
+        "validation": {
+          "required": true,
+          "maxLength": 50
+        }
+      },
+      {
+        "id": "apellido",
+        "type": "field",
+        "component": "text",
+        "label": "Apellidos",
+        "order": 2,
+        "validation": {
+          "required": true,
+          "maxLength": 50
+        }
+      },
+      {
+        "id": "edad",
+        "type": "field",
+        "component": "number",
+        "label": "Edad",
+        "order": 3,
+        "validation": {
+          "required": true,
+          "min": 0,
+          "max": 115
+        }
+      },
+      {
+        "id": "nivel_educativo",
+        "type": "field",
+        "component": "select",
+        "label": "Nivel educativo",
+        "order": 4,
+        "options": [
+          {
+            "label": "Ninguno",
+            "value": "0"
+          },
+          {
+            "label": "Educación Media",
+            "value": "1"
+          },
+          {
+            "label": "Educación Básica",
+            "value": "2"
+          }
+        ]
+      },
+      {
+        "id": "grado",
+        "type": "field",
+        "component": "select",
+        "label": "Grado",
+        "order": 5,
+        "dynamicOptions": {
+          "dependsOn": "nivel_educativo",
+          "map": {
+            "1": [
+              {
+                "label": "1",
+                "value": "1"
+              },
+              {
+                "label": "No sabe",
+                "value": "98"
+              }
+            ],
+            "2": [
+              {
+                "label": "1",
+                "value": "1"
+              },
+              {
+                "label": "2",
+                "value": "2"
+              }
+            ]
+          }
+        },
+        "visibility": {
+          "dependsOn": "nivel_educativo",
+          "operator": "!=",
+          "value": "0"
+        }
+      }
+    ]
+  }
+]

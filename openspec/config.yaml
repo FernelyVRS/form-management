@@ -1,0 +1,123 @@
+schema: spec-driven
+
+context: |
+  Project: Form Management (internal tool)
+
+  Purpose:
+  System to define, manage, and version dynamic forms using JSON schemas.
+  The forms are NOT hardcoded and are consumed by an external system.
+
+  Key Principles:
+  - JSON is the single source of truth for form structure
+  - No hardcoded form logic in frontend or backend
+  - Simplicity over over-engineering
+  - Designed for frequent changes in form structure
+
+  Backend:
+  - Language: C#
+  - Framework: .NET 9
+  - API style: Minimal APIs with Carter
+  - Architecture: Vertical Slice Architecture
+  - ORM: Entity Framework, Data Base First approach
+  - Database: SQL Server
+
+  Frontend:
+  - React + Vite + TypeScript
+  - React Hook Form (forms)
+  - React Query (server state)
+  - Zustand (client state)
+  - React Router (routing)
+  - Tailwind + ShadCN (UI)
+
+  Domain Concepts:
+  - Form: logical container
+  - FormVersion: versioned schema of a form
+  - SchemaJson: JSON that defines the entire form structure
+
+  JSON Schema Structure:
+  - Root: array of sections
+  - Section:
+      - id
+      - type: "section"
+      - titulo
+      - entidad
+      - orden
+      - items
+  - Field:
+      - id (technical identifier)
+      - variable (external system key, must not change)
+      - type: "field"
+      - component: "text" | "number" | "select"
+      - label
+      - orden
+      - options (optional)
+      - core (boolean)
+
+  Dependencies:
+  - Fields can depend on another field using:
+      dependencia:
+        campo: string
+  - Dynamic options are defined using:
+      map:
+        "value": [options]
+
+  Important Constraints:
+  - Do NOT include validation logic in schema (handled separately)
+  - Do NOT introduce new field types without justification
+  - Avoid redundant properties
+  - Keep schema declarative (no implicit logic)
+
+  Naming Conventions:
+  - id: snake_case
+  - variable: PascalCase (external system requirement)
+  - endpoints: RESTful
+
+  Development Style:
+  - Each feature should follow Vertical Slice pattern
+  - Each endpoint in its own file
+  - Use clear DTOs (no anonymous objects)
+  - Prefer explicit over implicit logic
+
+rules:
+  proposal:
+    - Keep proposals concise and practical
+    - Focus on implementation, not theory
+    - Avoid over-engineering
+    - Align with existing JSON schema design
+    - Do NOT introduce unnecessary abstractions
+    - Always consider integration with external system
+
+  tasks:
+    - Break tasks into small units (max 2-3 hours each)
+    - Each task must be independently testable
+    - Separate backend and frontend tasks
+    - Always include validation of JSON schema behavior
+    - Include edge cases for dependencies (map behavior)
+
+  implementation:
+    - Follow Vertical Slice Architecture strictly
+    - Do NOT use Controllers (use Minimal APIs)
+    - Do NOT hardcode form behavior
+    - All dynamic behavior must come from JSON
+    - Keep frontend renderer generic and reusable
+
+  schema:
+    - Do NOT add validation rules inside schema
+    - Keep dependency structure simple (dependencia + map)
+    - Avoid duplicating properties (e.g., no repeated "campo")
+    - Ensure compatibility with external system output
+    - Keep schema minimal but expressive
+
+  frontend:
+    - Use React Hook Form for all forms
+    - Map JSON schema → UI dynamically
+    - Avoid conditional rendering hardcoded in components
+    - All dynamic behavior must come from schema
+    - Use React Query for API calls
+
+  backend:
+    - Use Minimal APIs with Carter
+    - One endpoint per feature (Vertical Slice)
+    - Validate schema structure before saving
+    - Store schema as JSON (string)
+    - Avoid business logic in controllers/endpoints
