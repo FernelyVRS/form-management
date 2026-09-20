@@ -96,7 +96,13 @@ const FormPage = () => {
     };
 
     const seccionesSinPreguntas = useMemo(() =>
-        formStructure.map(({ preguntas, ...rest }) => rest),
+        formStructure.map(({ id, titulo, orden, restriccion, entidad }) => ({
+            id,
+            titulo,
+            orden,
+            restriccion,
+            entidad,
+        })),
         [formStructure]
     );
 

@@ -22,7 +22,7 @@ const VersionModal = ({ open, onOpenChange, formId, versions, onVersionCreated }
   
   const { handleSubmit } = useForm();
 
-  const availableVersions = versions.filter(v => v.estado === 'publicada');
+  const availableVersions = versions.filter(v => v.estado === 'Published');
 
   const onSubmit = async () => {
     if (!selectedVersionId) {

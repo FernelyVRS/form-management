@@ -26,7 +26,7 @@ const EditSection = ({ sectionId, handlerClose }: EditSectionProps) => {
     const sectionToEdit = getSectionsWithOutQuestions(data, sectionId)
     const { id } = sectionToEdit || {}
 
-    const form = useForm({
+    const form = useForm<Seccion>({
         defaultValues: {
             ...sectionToEdit
         },
@@ -48,7 +48,7 @@ const EditSection = ({ sectionId, handlerClose }: EditSectionProps) => {
         setJsonFormStructure(updatedSections)
     }
 
-    const onSubmit = (data: any) => {
+    const onSubmit = (data: Seccion) => {
         setIsLoading(true); // Set loading to true on submit
         editSection(data, id as string);
         handlerClose()

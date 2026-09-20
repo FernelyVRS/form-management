@@ -21,7 +21,7 @@ const CreateSection = ({ handlerClose }: CreateSectionProps) => {
 
     const addSection = (newSection: Seccion) => {
         newSection.id = ulid() // Generate a unique ID for the new section
-        let newSections = [...data, newSection]
+        const newSections = [...data, newSection]
         setJsonFormStructure(newSections)
         console.log(data)
     }

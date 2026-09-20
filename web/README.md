@@ -1,54 +1,40 @@
-# React + TypeScript + Vite
+# Form Management Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend React y TypeScript para administrar formularios dinámicos y sus versiones.
 
-Currently, two official plugins are available:
+## Comandos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```powershell
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm build
+pnpm lint
+pnpm preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+El servidor de desarrollo usa `http://localhost:5173`. La API está configurada actualmente en `https://localhost:7284` mediante `src/services/form.ts`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Organización
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+- `src/features/forms/`: páginas, componentes y hooks del dominio de formularios.
+- `src/components/ui/`: primitives compartidas de UI.
+- `src/components/dnd/`: edición drag-and-drop.
+- `src/services/`: acceso HTTP.
+- `src/store/`: estado cliente con Zustand.
+- `src/types/`: contratos TypeScript.
+- `tests/`: pruebas E2E con Playwright.
+
+Los estados canónicos de una versión son `Draft`, `Published` y `Archived`. Las etiquetas visibles pueden estar localizadas, pero las comparaciones deben utilizar esos valores contractuales.
+
+## Verificación
+
+`pnpm build` ejecuta TypeScript y genera el build de producción. Actualmente finaliza correctamente, con un warning no bloqueante por tamaño del chunk principal.
+
+Para Playwright, inicia primero Vite en el puerto 5173:
+
+```powershell
+pnpm dev -- --host localhost --port 5173 --strictPort
+pnpm exec playwright test
 ```
+
+La suite Playwright todavía corresponde parcialmente a una navegación anterior. Consulta `../docs/PROJECT_STATUS.md` antes de interpretar sus resultados.

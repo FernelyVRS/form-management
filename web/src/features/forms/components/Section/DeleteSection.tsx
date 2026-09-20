@@ -23,7 +23,6 @@ const DeleteSection = ({ handlerClose, sectionId }: DeleteSectionProps) => {
     })
 
     const removeSection = () => {
-        debugger
         // Only remove if the section exists and has no questions
         // const sectionToRemove = data.find(section => section.id === sectionId)
         // if (!sectionToRemove || sectionToRemove.preguntas.length > 0) {

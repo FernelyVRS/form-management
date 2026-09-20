@@ -1,6 +1,6 @@
 import { Seccion } from "./seccion";
 
-export type VersionEstado = 'borrador' | 'publicada';
+export type VersionEstado = 'Draft' | 'Published' | 'Archived';
 
 export type Version = {
   id: string;
@@ -8,6 +8,8 @@ export type Version = {
   estado: VersionEstado;
   createdAt: string;
   updatedAt: string;
+  descripcion?: string;
+  editadoPor?: string;
 };
 
 export type VersionWithEstructura = Version & {
