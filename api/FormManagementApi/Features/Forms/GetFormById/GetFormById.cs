@@ -10,14 +10,15 @@ public class GetFormById
         Guid Id,
         int NumeroVersion,
         string Estado,
+        string RowVersion,
         DateTime CreatedAt,
         DateTime? UpdatedAt
     );
     
     public record Response(
         Guid Id, 
-        string Name,
-        string? Description,
+        string Nombre,
+        string? Descripcion,
         DateTime CreatedAt,
         DateTime? UpdatedAt,
         IEnumerable<Version> Versiones
@@ -33,8 +34,7 @@ public class GetFormById
                 return result;
             })
                 .WithTags("Form")
-                .Produces<Response>()
-                .WithOpenApi();;
+                .Produces<Response>();
         }
     }
 
@@ -44,24 +44,45 @@ public class GetFormById
         var form = await context.Forms
             .Where(x => x.Id == id)
             .Select(x =>
-                new Response(
+                new
+                {
                     x.Id,
                     x.Name,
                     x.Description,
                     x.CreatedAt,
                     x.UpdatedAt,
-                    x.FormVersions.
-                        Select(v => 
-                            new Version(
-                                v.Id, 
-                                v.VersionNumber, 
-                                v.Status, 
-                                v.CreatedAt, 
-                                v.UpdatedAt))
+                    Versiones = x.FormVersions.
+                        OrderBy(v => v.VersionNumber).
+                        Select(v =>
+                            new
+                            {
+                                v.Id,
+                                v.VersionNumber,
+                                v.Status,
+                                v.RowVersion,
+                                v.CreatedAt,
+                                v.UpdatedAt
+                            })
                         .ToList()
-                ))
+                })
             .FirstOrDefaultAsync();
-        
-        return Results.Ok(form);
+
+        if (form == null) return Results.NotFound();
+
+        return Results.Ok(new Response(
+            form.Id,
+            form.Name,
+            form.Description,
+            form.CreatedAt,
+            form.UpdatedAt,
+            form.Versiones.Select(v =>
+                new Version(
+                    v.Id,
+                    v.VersionNumber,
+                    v.Status,
+                    Convert.ToBase64String(v.RowVersion),
+                    v.CreatedAt,
+                    v.UpdatedAt))
+            .ToList()));
     }
 } 

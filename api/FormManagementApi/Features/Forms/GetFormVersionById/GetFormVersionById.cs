@@ -25,8 +25,7 @@ public class GetFormVersionById
                 return result;
             })
                 .WithTags("Form")
-                .Produces<Response>()
-                .WithOpenApi();
+                .Produces<Response>();
         }
     }
 

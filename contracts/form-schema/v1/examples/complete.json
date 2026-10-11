@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "sections": [
+    {
+      "id": "miembros_hogar",
+      "type": "section",
+      "title": "Características del miembro del hogar",
+      "description": "Información personal y educativa.",
+      "entity": "Miembros",
+      "order": 1,
+      "items": [
+        {
+          "id": "grado",
+          "type": "field",
+          "component": "select",
+          "variable": "GradoMasAlto",
+          "label": "Grado",
+          "description": "Seleccione el grado correspondiente al nivel educativo.",
+          "order": 1,
+          "core": true,
+          "dependency": { "field": "NivelGradoMasAltoAp" },
+          "map": {
+            "1": [{ "label": "Primero", "value": "1" }, { "label": "No sabe", "value": "98" }],
+            "2": [{ "label": "Primero", "value": "1" }, { "label": "Segundo", "value": "2" }]
+          }
+        },
+        {
+          "id": "datos_personales",
+          "type": "group",
+          "label": "Datos personales",
+          "description": "Datos de la persona entrevistada.",
+          "order": 2,
+          "items": [
+            {
+              "id": "nombre", "type": "field", "component": "text",
+              "variable": "Nombre", "label": "Nombres", "order": 1, "core": true,
+              "validation": { "maxLength": 10 }
+            },
+            {
+              "id": "apellido", "type": "field", "component": "text",
+              "variable": "Apellidos", "label": "Apellidos", "order": 2, "core": true
+            },
+            {
+              "id": "edad", "type": "field", "component": "number",
+              "variable": "Edad", "label": "Edad", "order": 3, "core": true,
+              "validation": { "min": 0, "max": 115 }
+            },
+            {
+              "id": "nivel_educativo", "type": "field", "component": "select",
+              "variable": "NivelGradoMasAltoAp", "label": "Nivel educativo", "order": 4, "core": true,
+              "options": [
+                { "label": "Ninguno", "value": "0" },
+                { "label": "Educación Media", "value": "1" },
+                { "label": "Educación Básica", "value": "2" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "especialidad", "type": "field", "component": "select",
+          "variable": "Especialidad", "label": "Especialidad", "order": 3, "core": false,
+          "dependency": { "field": "GradoMasAlto" },
+          "map": { "1": [{ "label": "General", "value": "general" }] }
+        }
+      ]
+    },
+    {
+      "id": "servicios_basicos", "type": "section", "title": "Servicios Básicos",
+      "entity": "Hogar", "order": 2,
+      "items": [
+        {
+          "id": "cantidad_hombres", "type": "field", "component": "number",
+          "variable": "CantidadHombres", "label": "Cantidad de hombres", "order": 1, "core": true,
+          "validation": { "min": 0, "max": 10 }
+        },
+        {
+          "id": "cantidad_mujeres", "type": "field", "component": "number",
+          "variable": "CantidadMujeres", "label": "Cantidad de mujeres", "order": 2, "core": true,
+          "validation": {}
+        }
+      ]
+    }
+  ]
+}

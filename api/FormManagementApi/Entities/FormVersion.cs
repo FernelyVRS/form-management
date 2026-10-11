@@ -15,6 +15,8 @@ public partial class FormVersion
 
     public string SchemaJson { get; set; } = null!;
 
+    public byte[] RowVersion { get; set; } = [];
+
     public Guid? DerivedFromVersionId { get; set; }
 
     public DateTime CreatedAt { get; set; }

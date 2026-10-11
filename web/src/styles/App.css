@@ -43,3 +43,9 @@
 .read-the-docs {
   color: #888;
 }
+
+#root:has([data-builder-workspace]) {
+  max-width: none;
+  padding: 0;
+  text-align: left;
+}

@@ -1,33 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { getForms } from '@/services/form';
-import type { Form } from '@/types/form';
+import { useFormsQuery } from '@/features/forms/hooks/useForms';
 
 const FormListPage = () => {
     const navigate = useNavigate();
-    const [forms, setForms] = useState<Form[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-
-    useEffect(() => {
-        const loadForms = async () => {
-            try {
-                const data = await getForms();
-                setForms(data);
-            } catch (error) {
-                console.error('Failed to load forms:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        loadForms();
-    }, []);
+    const { data: forms = [], isPending, isError, isFetching, refetch } = useFormsQuery();
 
     const filteredForms = forms.filter(form =>
         form.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -42,10 +25,25 @@ const FormListPage = () => {
         navigate(`/forms/${formId}`);
     };
 
-    if (isLoading) {
+    if (isPending) {
         return (
-            <div className="flex items-center justify-center h-64">
+            <div className="flex items-center justify-center gap-3 h-64" role="status">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <span className="text-muted-foreground">Cargando formularios...</span>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="container mx-auto flex min-h-64 flex-col items-center justify-center gap-4 py-10" role="alert">
+                <div className="text-center">
+                    <h1 className="text-xl font-semibold">No se pudieron cargar los formularios</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">Comprueba la conexión con la API e intenta nuevamente.</p>
+                </div>
+                <Button onClick={() => refetch()} disabled={isFetching}>
+                    {isFetching ? 'Reintentando...' : 'Reintentar'}
+                </Button>
             </div>
         );
     }
@@ -82,25 +80,42 @@ const FormListPage = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredForms.map((form) => (
-                        <Card 
-                            key={form.id} 
+                        <Card
+                            key={form.id}
                             className="hover:shadow-lg transition-shadow cursor-pointer"
                             onClick={() => handleFormClick(String(form.id))}
                         >
-                            <CardHeader>
-                                <CardTitle className="text-lg">{form.nombre}</CardTitle>
+                            <CardHeader className="text-left">
+                                <div className="flex items-center justify-between space-x-2">
+                                    <CardTitle className="text-lg">{form.nombre}</CardTitle>
+                                    <Badge variant="secondary">
+                                        v{form.ultimaVersion}
+                                    </Badge>
+                                </div>
                                 <CardDescription className="line-clamp-2">
                                     {form.descripcion || 'Sin descripción'}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex items-center justify-between">
-                                    <Badge variant="secondary">
-                                        {form.totalVersiones} {form.totalVersiones === 1 ? 'versión' : 'versiones'}
-                                    </Badge>
-                                    <span className="text-sm text-muted-foreground">
-                                        v{form.ultimaVersion}
-                                    </span>
+                                <div className="flex items-center justify-between text-xs">
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-muted-foreground">
+                                            Ultima actualización
+                                        </span>
+                                        <span>
+                                            {form.updatedAt
+                                                ? new Date(form.updatedAt).toLocaleDateString()
+                                                : new Date(form.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-muted-foreground">
+                                            Versiones
+                                        </span>
+                                        <span>
+                                            {form.totalVersiones}
+                                        </span>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

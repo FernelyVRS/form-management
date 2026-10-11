@@ -1,6 +1,7 @@
 using Carter;
 using FormManagementApi.Data;
 using FormManagementApi.Entities;
+using FormManagementApi.Features.Forms.Shared.Schema;
 
 namespace FormManagementApi.Features.Forms.CreateForm;
 
@@ -21,8 +22,7 @@ public class CreateForm
             })
                 .WithTags("Form")
                 // .Produces<Response>()
-                .Produces<Response>(StatusCodes.Status201Created)
-                .WithOpenApi();
+                .Produces<Response>(StatusCodes.Status201Created);
         }
     }
 
@@ -45,7 +45,7 @@ public class CreateForm
             Form =  form,
             VersionNumber = 1,
             Status = "Draft",
-            SchemaJson = "{}",
+            SchemaJson = FormSchemaSerializer.Serialize(new FormSchemaDocument { SchemaVersion = 1, Sections = [] }),
             CreatedAt = DateTime.Now,
         };
         context.FormVersions.Add(version);
@@ -58,9 +58,9 @@ public class CreateForm
             VersionId: version.Id, 
             NumeroVersion: version.VersionNumber);
         
-        return Results.Created($"/api/forms/{response.FormId}", response);
+        return Results.Created($"/forms/{response.FormId}", response);
     }
 }
 
 // TODO: hacer que el GUID se genere en el codigo y no en la DB 
-// TODO: Guardar nuevo campo User en la DB 
+// TODO: Guardar nuevo campo User en la DB

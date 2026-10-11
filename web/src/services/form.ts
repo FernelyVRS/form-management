@@ -1,34 +1,12 @@
-import type { Seccion } from "@/types/seccion";
-import type { Form, Version, VersionWithEstructura, CreateFormInput, CreateFormFromVersionInput, CreateVersionInput, FormCreated, FormWithVersions } from "@/types/form";
+import type { FormCreated } from "@/types/form";
+import { apiUrl } from "@/config/env";
+import { z } from "zod";
+import { cloneForm } from "@/features/forms/api/formLifecycleApi";
 
-const API_URL = "https://localhost:7284"
+export { getForms } from "@/features/forms/api/formsApi";
 
-export const getForms = async (): Promise<Form[]> => {
-    const res = await fetch(`${API_URL}/forms`);
-    if (!res.ok) throw new Error('Failed to fetch forms');
-
-    const json = await res.json();
-    return json;
-};
-
-export const getFormByIdWithVersions = async (id: string): Promise<FormWithVersions> => {
-    const res = await fetch(`${API_URL}/forms/${id}`);
-    if (!res.ok) throw new Error('Failed to fetch form');
-
-    const json = await res.json();
-    return json;
-};
-
-export const getVersionEstructura = async (formId: string, versionId: string): Promise<Seccion[]> => {
-    const res = await fetch(`${API_URL}/forms/${formId}/versions/${versionId}/estructura`);
-    if (!res.ok) throw new Error('Failed to fetch version estructura');
-
-    const json = await res.json();
-    return json.data;
-};
-
-export const createForm = async (input: CreateFormInput): Promise<FormCreated> => {
-    const response = await fetch(`${API_URL}/forms`, {
+export const createForm = async (input: { nombre: string; descripcion?: string }): Promise<FormCreated> => {
+    const response = await fetch(`${apiUrl}/forms`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -41,72 +19,20 @@ export const createForm = async (input: CreateFormInput): Promise<FormCreated> =
     }
 
     const json = await response.json();
-    return json.data;
+    return z.object({ formId: z.string().min(1), versionId: z.string().min(1), numeroVersion: z.number().int().positive() }).parse(json);
 };
 
-export const createFormFromVersion = async (input: CreateFormFromVersionInput): Promise<FormCreated> => {
-    const response = await fetch(`${API_URL}/forms/from-version`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(input)
+export const createFormFromVersion = async (input: {
+    nombre: string;
+    descripcion?: string;
+    formularioOrigenId: string;
+    versionOrigenId: string;
+}): Promise<FormCreated> => {
+    const created = await cloneForm({
+        name: input.nombre,
+        description: input.descripcion ?? null,
+        sourceFormId: input.formularioOrigenId,
+        sourceVersionId: input.versionOrigenId,
     });
-
-    if (!response.ok) {
-        throw new Error('Failed to create form from version');
-    }
-
-    const json = await response.json();
-    return json.data;
-};
-
-export const createVersion = async (input: CreateVersionInput): Promise<Version> => {
-    const response = await fetch(`${API_URL}/forms/${input.formularioId}/versions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ versionOrigenId: input.versionOrigenId })
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to create version');
-    }
-
-    const json = await response.json();
-    return json.data;
-};
-
-export const publishVersion = async (formId: string, versionId: string): Promise<Version> => {
-    const response = await fetch(`${API_URL}/forms/${formId}/versions/${versionId}/publish`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to publish version');
-    }
-
-    const json = await response.json();
-    return json.data;
-};
-
-export const updateFormStructure = async (formId: string, versionId: string, estructura: Seccion[]): Promise<VersionWithEstructura> => {
-    const response = await fetch(`${API_URL}/forms/${formId}/versions/${versionId}/estructura`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ estructura })
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to update form structure');
-    }
-
-    const json = await response.json();
-    return json.data;
+    return { formId: created.formId, versionId: created.versionId, numeroVersion: created.number };
 };

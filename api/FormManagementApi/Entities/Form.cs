@@ -17,5 +17,9 @@ public partial class Form
 
     public bool IsActive { get; set; }
 
+    public Guid? SourceFormId { get; set; }
+
+    public Guid? SourceVersionId { get; set; }
+
     public virtual ICollection<FormVersion> FormVersions { get; set; } = new List<FormVersion>();
 }

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "sections": [
+    {
+      "id": "question_types",
+      "type": "section",
+      "title": "Todos los tipos de preguntas",
+      "description": "Sección de prueba con texto, número, selección estática, selección dependiente y campos agrupados.",
+      "entity": "Persona",
+      "order": 1,
+      "items": [
+        {
+          "id": "name",
+          "type": "field",
+          "component": "text",
+          "variable": "Nombre",
+          "label": "Nombre",
+          "description": "Prueba de texto con un máximo de 50 caracteres.",
+          "order": 1,
+          "core": false,
+          "validation": { "maxLength": 50 }
+        },
+        {
+          "id": "age",
+          "type": "field",
+          "component": "number",
+          "variable": "Edad",
+          "label": "Edad",
+          "description": "Prueba numérica con valores entre 0 y 120.",
+          "order": 2,
+          "core": false,
+          "validation": { "min": 0, "max": 120 }
+        },
+        {
+          "id": "country",
+          "type": "field",
+          "component": "select",
+          "variable": "Pais",
+          "label": "País",
+          "description": "Selección estática que actúa como origen de las opciones de Ciudad.",
+          "order": 3,
+          "core": false,
+          "options": [
+            { "label": "Paraguay", "value": "py" },
+            { "label": "Argentina", "value": "ar" },
+            { "label": "Otro", "value": "other" }
+          ]
+        },
+        {
+          "id": "city",
+          "type": "field",
+          "component": "select",
+          "variable": "Ciudad",
+          "label": "Ciudad",
+          "description": "Selección dependiente de País. Otro no tiene entrada en el mapa y produce una lista vacía.",
+          "order": 4,
+          "core": false,
+          "dependency": { "field": "Pais" },
+          "map": {
+            "py": [
+              { "label": "Asunción", "value": "asuncion" },
+              { "label": "Encarnación", "value": "encarnacion" }
+            ],
+            "ar": [
+              { "label": "Buenos Aires", "value": "buenos_aires" },
+              { "label": "Córdoba", "value": "cordoba" }
+            ]
+          }
+        },
+        {
+          "id": "additional_data",
+          "type": "group",
+          "label": "Datos complementarios",
+          "description": "Grupo de un nivel con dos campos para probar edición y movimiento.",
+          "order": 5,
+          "items": [
+            {
+              "id": "comments",
+              "type": "field",
+              "component": "text",
+              "variable": "Comentarios",
+              "label": "Comentarios",
+              "description": "Campo de texto dentro de un grupo.",
+              "order": 1,
+              "core": false,
+              "validation": { "maxLength": 200 }
+            },
+            {
+              "id": "score",
+              "type": "field",
+              "component": "number",
+              "variable": "Puntaje",
+              "label": "Puntaje",
+              "description": "Campo numérico dentro de un grupo, entre 0 y 10.",
+              "order": 2,
+              "core": false,
+              "validation": { "min": 0, "max": 10 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "editing_section",
+      "type": "section",
+      "title": "Sección de edición",
+      "description": "Sección vacía para crear preguntas o mover campos desde la primera sección.",
+      "entity": "Persona",
+      "order": 2,
+      "items": []
+    }
+  ]
+}

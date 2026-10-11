@@ -141,23 +141,27 @@ Actualmente los formularios:
 
 ## 9. 🧠 Diseño del Schema JSON
 
-El sistema se basa en un JSON que representa completamente la estructura del formulario.
+El contrato activo es el documento inglés v1 definido en [`contracts/form-schema/v1/`](contracts/form-schema/v1/README.md). API y builder utilizan v1, con edición local y Guardar explícito. El mock legado se conserva en `web/src/mocks/legacy/formStructure.json`, sin imports de runtime. El renderer de respuestas todavía está pendiente; `/view` inspecciona la estructura sin edición.
 
 ---
 
 ## 10. 🧱 Estructura General
 
 ```json
-[
-  {
-    "id": "string",
-    "type": "section",
-    "titulo": "string",
-    "entidad": "string",
-    "orden": number,
-    "items": []
-  }
-]
+{
+  "schemaVersion": 1,
+  "sections": [
+    {
+      "id": "servicios_basicos",
+      "type": "section",
+      "title": "Servicios Básicos",
+      "description": "Información del hogar.",
+      "entity": "Hogar",
+      "order": 1,
+      "items": []
+    }
+  ]
+}
 ```
 
 ---
@@ -172,6 +176,8 @@ El sistema se basa en un JSON que representa completamente la estructura del for
 ### Group
 
 - Agrupador visual/lógico
+- Usa `label`, `description` opcional, `order` e `items` con fields únicamente.
+- Hereda la entidad de su sección; no permite grupos recursivos.
 
 ### Field
 
@@ -183,14 +189,15 @@ El sistema se basa en un JSON que representa completamente la estructura del for
 
 ```json
 {
-  "id": "string",
-  "variable": "string",
+  "id": "calle",
+  "variable": "Calle",
   "type": "field",
-  "component": "text | number | select",
-  "label": "string",
-  "orden": number,
-  "options": [],
-  "core": boolean
+  "component": "text",
+  "label": "Calle",
+  "description": "Nombre de la calle.",
+  "order": 1,
+  "core": true,
+  "validation": { "maxLength": 30 }
 }
 ```
 
@@ -202,16 +209,19 @@ El sistema se basa en un JSON que representa completamente la estructura del for
 
 - Identificador técnico interno
 - Usado en frontend
+- snake_case y único en todo el documento.
 
 ### `variable`
 
 - Nombre usado en el sistema externo
 - **No debe cambiar**
+- PascalCase, obligatorio y único en todo el documento.
 
 ### `core`
 
 - Indica que el campo es esencial
 - No debe eliminarse en versiones derivadas
+- Boolean obligatorio; protección contra eliminación implementada en la futura capa de escritura.
 
 ---
 
@@ -220,8 +230,9 @@ El sistema se basa en un JSON que representa completamente la estructura del for
 Las dependencias se definen mediante:
 
 ```json
-"dependencia": {
-  "campo": "NombreVariable"
+{
+  "dependency": { "field": "NivelGradoMasAltoAp" },
+  "map": { "1": [{ "label": "Primero", "value": "1" }] }
 }
 ```
 
@@ -232,15 +243,21 @@ Las dependencias se definen mediante:
 Las opciones pueden depender del valor de otro campo:
 
 ```json
-"map": {
-  "1": [...],
-  "2": [...]
+{
+  "map": {
+    "1": [{ "label": "Primero", "value": "1" }],
+    "2": [{ "label": "Segundo", "value": "2" }]
+  }
 }
 ```
 
 ### Comportamiento:
 
-- El valor del campo dependiente determina las opciones disponibles
+- El valor del campo origen determina las opciones disponibles del dependiente.
+- `dependency.field` referencia `variable` de otro select, incluso en grupos o posiciones posteriores.
+- Se permiten dependencias encadenadas, pero no ciclos ni referencias inexistentes.
+- Un valor sin entrada en `map` produce una lista vacía.
+- Un select tiene `options` o `dependency` + `map`, nunca ambos.
 - No se usa lógica hardcode en frontend
 
 ---
@@ -253,12 +270,15 @@ Las opciones pueden depender del valor de otro campo:
 - Tipos de campos
 - Opciones
 - Dependencias simples
+- Descripciones opcionales en secciones, grupos y fields.
+- Validaciones simples en `validation`: text `maxLength`; number `min` y `max`.
 
 ### ❌ NO incluido en el JSON
 
 - Validaciones complejas
 - Reglas de negocio
 - Lógica entre múltiples campos
+- `required` de respuesta, `range`, `visibility` y grupos recursivos.
 
 Estas serán manejadas en el futuro mediante otro JSON o sistema.
 
@@ -291,7 +311,10 @@ El resultado sigue la estructura:
 
 ## 18. ⚠️ Reglas Importantes
 
-- `orden` debe ser único dentro del nivel
+- `order` debe ser único y consecutivo desde 1 dentro del nivel.
+- Keys técnicas y discriminadores en inglés; textos visibles e identificadores externos no se traducen.
+- Opciones `{ label, value }` con valores string únicos por lista.
+- Propiedades desconocidas y documentos legacy se rechazan en los validadores v1.
 - No duplicar responsabilidades entre propiedades
 - No usar tipos ambiguos como:
   - `dependiente`
@@ -303,7 +326,7 @@ El resultado sigue la estructura:
 
 ## 19. ❓ Open Questions
 
-- Estructura final del JSON de validaciones
+- Extensiones futuras de validaciones más allá de min/max/maxLength.
 - Manejo de lógica compleja entre campos
 - Estrategia de render dinámico completa
 - Soporte para listas (ej: múltiples miembros)

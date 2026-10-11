@@ -1,19 +1,14 @@
-import { Seccion } from "./seccion";
-
 export type VersionEstado = 'Draft' | 'Published' | 'Archived';
 
 export type Version = {
   id: string;
   numero: number;
   estado: VersionEstado;
+  rowVersion: string;
   createdAt: string;
   updatedAt: string;
   descripcion?: string;
   editadoPor?: string;
-};
-
-export type VersionWithEstructura = Version & {
-  estructura: Seccion[];
 };
 
 export type Form = {

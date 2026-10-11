@@ -8,7 +8,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 
 
 export default defineConfig([
-  { ignores: ["dist/**"] },
+  { ignores: ["dist/**", "test-results/**", "playwright-report/**"] },
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"], languageOptions: { globals: globals.browser } },
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"], plugins: { js }, extends: ["js/recommended"] },
@@ -27,7 +27,13 @@ export default defineConfig([
       ...react.configs.flat.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
-      "react-refresh/only-export-components": "warn",
+      "react-refresh/only-export-components": [
+        "warn",
+        {
+          allowConstantExport: true,
+          allowExportNames: ["useFormField", "badgeVariants", "buttonVariants"],
+        },
+      ],
       "no-unused-vars": "warn",
       "no-undef": "warn",
     }

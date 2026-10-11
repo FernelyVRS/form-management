@@ -1,0 +1,21 @@
+# Agent OS Standards Index
+
+root:
+  naming-conventions:
+    description: Naming rules for React components, hooks, stores, backend features, and endpoint DTOs
+
+backend:
+  vertical-slices:
+    description: Carter vertical slice structure, route handlers, registration, and OpenAPI metadata
+
+database:
+  ef-core-access:
+    description: Direct AppDbContext access, asynchronous operations, and Fluent entity mapping
+
+frontend:
+  feature-structure:
+    description: Location and responsibilities of form features, pages, components, hooks, and shared UI
+  forms:
+    description: React Hook Form composition with providers, shared field primitives, and submit state
+  ui-components:
+    description: Shared UI primitives, Tailwind styling, theme tokens, and class composition

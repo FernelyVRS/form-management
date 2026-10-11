@@ -1,17 +1,23 @@
 import { FileEdit, CheckCircle, Archive, Clock, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { StatusBadge, VersionStatus } from './StatusBadge';
+import { StatusBadge } from './StatusBadge';
 import type { Version } from '@/types/form';
+import { versionActionsFor, type VersionLifecycleStatus } from '../model/versionActions';
 import { cn } from '@/lib/utils';
 
 interface VersionCardProps {
   version: Version;
   className?: string;
   onView?: () => void;
+  onPublish?: () => void;
+  onArchive?: () => void;
+  onCreateVersion?: () => void;
+  onClone?: () => void;
+  busy?: boolean;
 }
 
-const statusIcons: Record<VersionStatus, { icon: typeof FileEdit; bg: string; text: string }> = {
+const statusIcons: Record<VersionLifecycleStatus, { icon: typeof FileEdit; bg: string; text: string }> = {
   Draft: {
     icon: FileEdit,
     bg: 'bg-gray-100',
@@ -38,53 +44,21 @@ function formatDate(dateStr: string): string {
   });
 }
 
-export function VersionCard({ version, className, onView }: VersionCardProps) {
+const outlineButton = 'border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors';
+
+export function VersionCard({
+  version,
+  className,
+  onView,
+  onPublish,
+  onArchive,
+  onCreateVersion,
+  onClone,
+  busy = false,
+}: VersionCardProps) {
   const statusConfig = statusIcons[version.estado] || statusIcons['Draft'];
   const StatusIcon = statusConfig.icon;
-
-  const getActionButton = () => {
-    console.log('Version status:', version.estado);
-    if (version.estado === 'Draft') {
-      return (
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-slate-200 text-slate-700 hover:bg-green-600 hover:text-white hover:border-green-600 transition-colors"
-          onClick={onView}
-        >
-          Edit
-        </Button>
-      );
-    }
-
-    if (version.estado === 'Published') {
-      return (
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-slate-200 text-slate-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors"
-          onClick={onView}
-        >
-          View Live
-        </Button>
-      );
-    }
-
-    if (version.estado === 'Archived') {
-      return (
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-slate-200 text-slate-700 hover:bg-slate-600 hover:text-white hover:border-slate-600 transition-colors"
-          onClick={onView}
-        >
-          View Archive
-        </Button>
-      );
-    }
-
-    return null;
-  };
+  const availableActions = versionActionsFor(version.estado);
 
   return (
     <Card
@@ -108,7 +82,7 @@ export function VersionCard({ version, className, onView }: VersionCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="font-semibold text-slate-900">
-                Version {version.numero}
+                Versión {version.numero}
               </span>
               <StatusBadge status={version.estado} />
             </div>
@@ -133,7 +107,51 @@ export function VersionCard({ version, className, onView }: VersionCardProps) {
             </div>
           </div>
 
-          <div className="shrink-0">{getActionButton()}</div>
+          <div className="shrink-0 max-w-full">
+            <div className="flex flex-wrap gap-2 justify-end">
+              {availableActions.includes('edit') && (
+                <Button variant="outline" size="sm" className={outlineButton} onClick={onView} disabled={busy}>
+                  Editar
+                </Button>
+              )}
+              {availableActions.includes('publish') && (
+                <Button size="sm" onClick={onPublish} disabled={busy}>
+                  {busy ? 'Publicando…' : 'Publicar'}
+                </Button>
+              )}
+              {availableActions.includes('archive') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-200 text-slate-700 hover:bg-slate-600 hover:text-white hover:border-slate-600 transition-colors"
+                  onClick={onArchive}
+                  disabled={busy}
+                >
+                  Archivar borrador
+                </Button>
+              )}
+              {availableActions.includes('view') && (
+                <Button variant="outline" size="sm" className={outlineButton} onClick={onView}>
+                  Ver estructura
+                </Button>
+              )}
+              {availableActions.includes('createVersion') && (
+                <Button variant="outline" size="sm" className={outlineButton} onClick={onCreateVersion}>
+                  Crear versión
+                </Button>
+              )}
+              {availableActions.includes('clone') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-200 text-slate-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors"
+                  onClick={onClone}
+                >
+                  Clonar formulario
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

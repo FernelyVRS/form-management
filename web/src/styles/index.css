@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -39,6 +40,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -116,5 +118,47 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+[data-builder-workspace] {
+  min-height: 100dvh;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-builder-workspace] button,
+[data-builder-workspace] a,
+[data-builder-workspace] summary {
+  touch-action: manipulation;
+}
+
+[data-builder-workspace] [data-node-id] {
+  scroll-margin-top: 6rem;
+}
+
+#schema-node-editor-form [data-slot="native-select-wrapper"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (pointer: coarse) {
+  [data-builder-workspace] button,
+  [data-builder-workspace] summary,
+  [data-builder-overlay] button {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-builder-workspace] *,
+  [data-builder-workspace] *::before,
+  [data-builder-workspace] *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

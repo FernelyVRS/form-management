@@ -32,6 +32,9 @@
             "**/.idea": true,
             "**/bin": true,
             "**/obj": true,
+        },
+        "[typescriptreact]": {
+            "editor.defaultFormatter": "TypeScriptTeam.native-preview"
         }
     }
 }

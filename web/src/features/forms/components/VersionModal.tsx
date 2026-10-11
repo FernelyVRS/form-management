@@ -1,57 +1,49 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { Version } from '@/types/form';
-import { createVersion } from '@/services/form';
+import { useDeriveVersionMutation } from '@/features/forms/hooks/useFormLifecycle';
+import { lifecycleMessage, type LifecycleVersion } from '@/features/forms/api/formLifecycleApi';
 
 type VersionModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formId: string;
   versions: Version[];
-  onVersionCreated: (version: Version) => void;
+  onVersionCreated: (version: LifecycleVersion) => void;
 };
 
+const sourceLabel = (version: Version) =>
+  version.estado === 'Published' ? `Versión ${version.numero} (publicada)` : `Versión ${version.numero} (archivada)`;
+
 const VersionModal = ({ open, onOpenChange, formId, versions, onVersionCreated }: VersionModalProps) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedVersionId, setSelectedVersionId] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  
-  const { handleSubmit } = useForm();
 
-  const availableVersions = versions.filter(v => v.estado === 'Published');
+  const availableVersions = versions.filter(version =>
+    version.estado === 'Published' || version.estado === 'Archived');
+  const derive = useDeriveVersionMutation(formId);
 
-  const onSubmit = async () => {
-    if (!selectedVersionId) {
-      setError('Selecciona una versión para continuar');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const newVersion = await createVersion({
-        formularioId: formId,
-        versionOrigenId: selectedVersionId
-      });
-      
-      onVersionCreated(newVersion);
+  useEffect(() => {
+    if (!open) return;
+    // Keep the most recent selection valid: drop it if the source disappeared after a refresh.
+    if (selectedVersionId && !availableVersions.some(version => version.id === selectedVersionId)) {
       setSelectedVersionId('');
-      onOpenChange(false);
-    } catch (err) {
-      setError(err instanceof Error ? `Error: ${err.message}. Intenta de nuevo.` : 'Error al crear la versión. Intenta de nuevo.');
-    } finally {
-      setIsLoading(false);
     }
+  }, [open, availableVersions, selectedVersionId]);
+
+  const onSubmit = () => {
+    if (!selectedVersionId || derive.isPending) return;
+    derive.mutate(
+      { sourceVersionId: selectedVersionId },
+      { onSuccess: version => onVersionCreated(version) },
+    );
   };
 
   const handleClose = () => {
     setSelectedVersionId('');
-    setError(null);
+    derive.reset();
     onOpenChange(false);
   };
 
@@ -61,18 +53,19 @@ const VersionModal = ({ open, onOpenChange, formId, versions, onVersionCreated }
         <DialogHeader>
           <DialogTitle>Crear Nueva Versión</DialogTitle>
           <DialogDescription>
-            Crea una nueva versión copiando la estructura de una versión existente.
+            Crea una nueva versión copiando la estructura de una versión publicada o archivada.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={event => { event.preventDefault(); onSubmit(); }} className="space-y-4">
           <div>
             <Label htmlFor="versionOrigen">Versión base *</Label>
             <Select
               value={selectedVersionId}
               onValueChange={setSelectedVersionId}
+              disabled={derive.isPending}
             >
-              <SelectTrigger>
+              <SelectTrigger id="versionOrigen">
                 <SelectValue placeholder="Selecciona una versión" />
               </SelectTrigger>
               <SelectContent>
@@ -81,19 +74,19 @@ const VersionModal = ({ open, onOpenChange, formId, versions, onVersionCreated }
                     <SelectLabel>Versiones disponibles</SelectLabel>
                     {availableVersions.map((version) => (
                       <SelectItem key={version.id} value={version.id}>
-                        Versión {version.numero} ({version.estado})
+                        {sourceLabel(version)}
                       </SelectItem>
                     ))}
                   </SelectGroup>
                 ) : (
                   <SelectGroup>
-                    <SelectLabel>No hay versiones publicadas</SelectLabel>
+                    <SelectLabel>No hay versiones publicadas ni archivadas</SelectLabel>
                   </SelectGroup>
                 )}
               </SelectContent>
             </Select>
-            {error && (
-              <p className="text-sm text-red-500 mt-1" role="alert">{error}</p>
+            {derive.isError && (
+              <p className="text-sm text-red-500 mt-1" role="alert">{lifecycleMessage(derive.error)}</p>
             )}
           </div>
 
@@ -107,11 +100,11 @@ const VersionModal = ({ open, onOpenChange, formId, versions, onVersionCreated }
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={handleClose}>
+            <Button type="button" variant="secondary" onClick={handleClose} disabled={derive.isPending}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading || availableVersions.length === 0}>
-              {isLoading ? 'Creando…' : 'Crear Versión'}
+            <Button type="submit" disabled={derive.isPending || availableVersions.length === 0}>
+              {derive.isPending ? 'Creando…' : 'Crear Versión'}
             </Button>
           </DialogFooter>
         </form>

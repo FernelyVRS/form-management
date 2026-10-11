@@ -31,41 +31,32 @@ src/
   features/
     forms/
       components/          # Componentes específicos de Forms
-        Question/
-          ├── CreateQuestion.tsx
-          ├── EditQuestion.tsx
-          ├── DeleteQuestion.tsx
-          └── QuestionForm.tsx
-        Section/
-          ├── CreateSection.tsx
-          ├── EditSection.tsx
-          ├── DeleteSection.tsx
-          └── SectionForm.tsx
-        Table.tsx
-        TableRowActions.tsx
-        FormDialog.tsx
+        builder/           # Árbol, inspector, editor de nodos y dependencias
         VersionModal.tsx
-        FormCreator/
+        VersionCard.tsx
+        StatusBadge.tsx
+        CloneFormDialog.tsx
       pages/               # Páginas/rutas
         ├── FormListPage.tsx
         ├── FormDetailPage.tsx
         ├── CreateFormPage.tsx
-        └── FormPage.tsx
+        ├── FormBuilderPage.tsx
+        └── FormVersionViewPage.tsx
       hooks/               # Hooks específicos
-        └── useForms.ts
+      api/                 # Clientes API de la feature (forms, schema, lifecycle)
+      model/               # Módulos puros del contrato v1
+      builder/             # Store del builder aislado por ruta
   components/
-    ui/                   # shadcn/ui components
-    dnd/                  # drag-and-drop components
-    forms/                # Reusable type fields (NumberTypeFields, etc.)
-  services/               # API calls
-  store/                  # Zustand stores
-  types/                  # Global TypeScript types
-  lib/                    # Utilities
+    ui/                    # shadcn/ui components
+  services/                # API calls compartidos (form.ts)
+  types/                   # Tipos globales (form.ts)
+  config/                  # env.ts (VITE_API_URL)
+  lib/                     # Utilities
 ```
 
 ## Additional Notes
 
-- API URL: `https://localhost:7284` (configured in `src/services/form.ts`)
+- API URL: `http://localhost:5165` por defecto, configurable con `VITE_API_URL` (ver `src/config/env.ts`)
 - Path alias: `@/*` → `./src/*`
 - React Query cache: Configure `gcTime` appropriately (default 5 min)
 - Test files: Located in `tests/` directory, use Playwright

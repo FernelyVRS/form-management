@@ -1,6 +1,16 @@
 # Backlog Operativo
 
-Backlog derivado de las tareas priorizadas en la Fase 6. `TASK-001` está completada; las tareas restantes conservan su estado individual.
+Backlog derivado de las tareas priorizadas en la Fase 6. `TASK-001` y `TASK-002` están completadas; `TASK-008` fue superada por el change completado `manage-form-version-lifecycle` (ciclo de vida de versiones completo, archivado 2026-10-10). Las tareas restantes conservan su estado individual.
+
+## Iniciativa prioritaria: schema inglés v1
+
+1. **adopt-versioned-english-form-schema**: contrato compartido, JSON Schema, ejemplos, Zod/.NET, tests de paridad y documentación. Este paso no integra el runtime. Fuente normativa: `contracts/form-schema/v1/README.md`.
+2. **persist-form-version-schema — completado localmente**: migración transaccional aplicada a los 3 placeholders auditados tras backup verificado, RowVersion, constraint v1 y endpoints GET/PUT Draft-only. Respuestas estructuradas inglesas, errores y concurrencia comprobados con SQL real. 68 tests backend correctos; resultados en `openspec/changes/persist-form-version-schema/implementation-results.md`.
+3. **migrate-form-builder-to-schema-v1 — completado**: Query y borrador aislado por ruta, Section/Field/Group y DnD lazy, orden normalizado, protección core/variable, Guardar explícito y recuperación de errores/conflictos. El mock legacy fue eliminado en la limpieza de 2026-10-11 (ya sin imports de runtime desde la migración a v1). /view inspecciona estructura read-only. Resultados en `openspec/changes/migrate-form-builder-to-schema-v1/implementation-results.md`.
+4. **render-form-schema-v1**: vista dinámica read-only, descripciones inline/tooltip accesible, selects dependientes y constraints simples sin respuestas obligatorias. Mantener UI localizada y keys técnicas inglesas.
+5. **manage-form-version-lifecycle — completado**: endpoints y slicing de crear versión desde versión, clonar formulario, publicar (atómico) y archivar Draft, con invariantes de ≤1 Draft/Publicado, numeración estable y ProblemDetails con códigos. UI de detalle con resumen real, acciones por estado, confirmaciones y clonado. Migración 002 aplicada a `form_structure` tras backup verificado; bug de orden de batch del publish detectado en la verificación en vivo y corregido con test de regresión. 83 tests backend, 85 unitarios y 22 Playwright nuevos correctos. Resultados en `openspec/changes/manage-form-version-lifecycle/implementation-results.md`.
+
+Estas decisiones superseden las preguntas históricas de schema más abajo. El listado/metadata y sus pruebas mantienen su alcance independiente. Clonado/publicación completos, listas de entidades y reglas complejas tendrán sus propios cambios posteriores.
 
 ### TASK-001 - Recuperar un build frontend verde
 
@@ -47,7 +57,7 @@ Notas:
 
 ### TASK-002 - Dejar el lint como señal confiable
 
-Estado: En revisión
+Estado: Completada
 
 Prioridad: Alta
 
@@ -90,7 +100,7 @@ Criterios generales:
 - No se deshabilitan ni reducen globalmente reglas para ocultar los errores confirmados.
 - `pnpm build` continúa funcionando.
 
-OpenSpec: `openspec/changes/restore-reliable-frontend-lint/`
+OpenSpec: `openspec/changes/archive/2026-10-10-restore-reliable-frontend-lint/`
 
 Notas:
 - Tamaño estimado: pequeño.
@@ -102,6 +112,7 @@ Notas:
 - Implementación 2026-09-20: `dist/**` queda fuera de ESLint y se corrigieron los cuatro errores sin cambiar severidades ni suprimir reglas.
 - Verificación 2026-09-20: `pnpm exec eslint src tests` y `pnpm lint` finalizan con 0 errores y 8 warnings visibles; `pnpm build` finaliza correctamente.
 - Lista para revisión; el change permanece activo y no debe archivarse hasta completar revisión y cierre.
+- Cierre 2026-10-10: la revisión pasó sin hallazgos bloqueantes; el change fue archivado y su spec `frontend-lint-quality-gate` sincronizada como spec principal. Los 5 warnings diferidos (hooks y React Refresh) fueron corregidos el mismo día: effects de `SelectDependedTypeFields.tsx` con guard por refs y `allowExportNames`/`allowConstantExport` para los exports canónicos de shadcn (`useFormField`, `badgeVariants`, `buttonVariants`). `pnpm lint` quedó en 0 errores y 0 warnings.
 
 ### TASK-003 - Especificar el contrato HTTP básico de formularios
 
@@ -165,7 +176,7 @@ Notas:
 
 ### TASK-004 - Consolidar pnpm y los requisitos de runtime
 
-Estado: Pendiente
+Estado: Completada (change `reproducible-local-environment`, archivado 2026-10-10)
 
 Prioridad: Media
 
@@ -215,12 +226,12 @@ Criterios generales:
 - La decisión de scripts de `esbuild` queda documentada y no deja una advertencia inexplicada.
 - El contexto OpenSpec y la documentación técnica reflejan el target efectivo .NET 10.
 
-OpenSpec: Pendiente
+OpenSpec: `openspec/changes/archive/2026-10-10-reproducible-local-environment/`
 
 Notas:
 - Tamaño estimado: mediano.
 - No incluye una actualización masiva de paquetes.
-- Confirmado por Git: `package-lock.json` está eliminado, `pnpm-lock.yaml` no está rastreado y `package.json` tiene cambios locales.
+- Cierre 2026-10-10: pnpm 10.33.0 declarado oficial (`packageManager` + Corepack), Node fijado en 22.13.0 (`web/.node-version` + `engines`), SDK .NET 10.0.201 fijado (`api/global.json`, `rollForward: latestFeature`), `pnpm.onlyBuiltDependencies` con esbuild, raíz `.gitignore` con `.env`, `package-lock.json` eliminado y `pnpm-lock.yaml` como único lockfile (aceptando las resoluciones actuales). AGENTS.md y README.md usan pnpm y documentan el toolchain. Verificación: `pnpm install --frozen-lockfile`, build, lint 0/0 y 85 unitarios; dotnet build 0 errores y 83 tests. Pendiente de commit: el lockfile y los archivos de pinning.
 - Confirmado por código: no existen `packageManager`, `engines`, archivo de versión Node ni `global.json`; el backend apunta a `net10.0` mientras OpenSpec aún menciona .NET 9.
 - Confirmado por entorno: Node 22.13.0, pnpm 10.33.0 y .NET SDK 10.0.201 funcionan localmente, pero no están fijados por el repositorio.
 - Decisiones humanas pendientes: gestor oficial, política de versiones, aceptación del drift del lockfile, Corepack, `rollForward` y scripts de `esbuild`.
@@ -228,7 +239,7 @@ Notas:
 
 ### TASK-005 - Hacer reproducible la base de datos local
 
-Estado: Pendiente
+Estado: Completada (change `reproducible-local-environment`, archivado 2026-10-10)
 
 Prioridad: Media
 
@@ -288,11 +299,11 @@ Criterios generales:
 - La verificación no depende del contenido previo de `sqlvolume` y solo elimina volúmenes marcados como desechables.
 - Detener y reiniciar el entorno normal conserva los datos del volumen persistente.
 
-OpenSpec: Pendiente
+OpenSpec: `openspec/changes/archive/2026-10-10-reproducible-local-environment/`
 
 Notas:
 - Tamaño estimado: mediano.
-- Confirmado por código: la API usa `ConnectionStrings:DockerConnection`; el script SQL es la única inicialización y la credencial de desarrollo está versionada en texto plano.
+- Cierre 2026-10-10: `compose.yml` con SQL Server 2022 fijado (`2022-CU27-ubuntu-22.04`), healthcheck, volumen propio por proyecto (distinto de `sqlvolume`) y puerto parametrizable; `.env.example` sin secretos; `scripts/init-local-db.ps1` espera readiness, crea `form_structure`, aplica NewFile1 → 001 → 002 con `sqlcmd -b` y verifica catalog/constraints; el script es repetible (baseline se omite si ya existe). Durante la verificación se encontró que la sesión sqlcmd corre con `QUOTED_IDENTIFIER OFF` y el re-ejecutar el 001 sobre una base ya migrada choca con los índices filtrados del 002 (Msg 1934); el script ahora fuerza `SET QUOTED_IDENTIFIER ON`. Rehearsal completo en puerto 14331 con proyecto aislado: bootstrap verificado, repetible y teardown limpio; `sqlserver22` intacto.
 - Confirmado por entorno 2026-09-20: Docker Engine 29.4.2 está disponible; `sqlserver22` existe con SQL Server 2022 Developer, binding `1433:1433` y volumen `sqlvolume`, pero está detenido con exit code 255 y sin política de restart.
 - Confirmado por entorno 2026-09-20: no hay proyecto Compose ni listener en `localhost:1433`; no se inició el contenedor ni se consultaron datos o metadata interna.
 - Confirmado por OpenSpec/Agent OS: el proyecto declara SQL Server y database-first; los estándares definen acceso EF, no una estrategia de bootstrap o migraciones.
@@ -431,7 +442,7 @@ Notas:
 
 ### TASK-008 - Implementar la creación de versiones
 
-Estado: Pendiente
+Estado: Completada (superada por `manage-form-version-lifecycle`, archivado 2026-10-10; ver `openspec/changes/archive/2026-10-10-manage-form-version-lifecycle/implementation-results.md`)
 
 Prioridad: Baja
 
@@ -566,14 +577,16 @@ Notas:
 
 ## Orden recomendado
 
-1. `TASK-002`: recuperar primero una señal de lint útil.
-2. `TASK-004`: consolidar gestor y runtimes para que los quality gates sean reproducibles.
+> Estado 2026-10-10 (tarde): TASK-001, TASK-002, TASK-004, TASK-005 y TASK-008 completadas y archivadas; suites Playwright legacy de tabs eliminados (29 tests/4 archivos en verde). El orden vigente de trabajo pendiente es: `render-form-schema-v1` (item 4 de la iniciativa) → re-auditoría de dependencias frontend → TASK-003.
+
+1. `TASK-002`: recuperar primero una señal de lint útil. **(Completada)**
+2. `TASK-004`: consolidar gestor y runtimes para que los quality gates sean reproducibles. **(Completada, 2026-10-10)**
 3. `TASK-003`: aprobar en OpenSpec el contrato HTTP básico.
-4. `TASK-005`: hacer reproducible SQL Server sin tocar el volumen local existente.
-5. `TASK-006`: implementar el contrato básico ya aprobado y validarlo contra un entorno desechable.
-6. `TASK-007`: recuperar la suite mínima sobre listado, creación y detalle.
-7. `TASK-008`: especificar y luego implementar creación de versiones.
-8. `TASK-009`: separar edición y visualización sobre contratos de versión y estructura estables.
+4. `TASK-005`: hacer reproducible SQL Server sin tocar el volumen local existente. **(Completada, 2026-10-10)**
+5. `TASK-006`: implementar el contrato básico ya aprobado y validarlo contra un entorno desechable. **(Mayormente resuelto)**
+6. `TASK-007`: recuperar la suite mínima sobre listado, creación y detalle. **(Mayormente resuelto; suites legacy de tabs eliminados 2026-10-10)**
+7. `TASK-008`: especificar y luego implementar creación de versiones. **(Completada vía `manage-form-version-lifecycle`)**
+8. `TASK-009`: separar edición y visualización sobre contratos de versión y estructura estables. **(Mayormente resuelto)**
 
 Dependencias principales confirmadas:
 

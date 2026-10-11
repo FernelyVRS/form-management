@@ -36,6 +36,16 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(200);
+
+            entity.HasOne(typeof(Form)).WithMany()
+                .HasForeignKey(nameof(Form.SourceFormId))
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Forms_SourceForm");
+
+            entity.HasOne(typeof(FormVersion)).WithMany()
+                .HasForeignKey(nameof(Form.SourceVersionId))
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Forms_SourceVersion");
         });
 
         modelBuilder.Entity<FormVersion>(entity =>
@@ -43,10 +53,21 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__FormVers__3214EC07B87C67E1");
 
             entity.HasIndex(e => new { e.FormId, e.VersionNumber }, "UX_FormVersions_FormId_VersionNumber").IsUnique();
+            entity.HasIndex(e => e.FormId, "UX_FormVersions_Draft")
+                .IsUnique()
+                .HasFilter("[Status] = N'Draft'");
+            entity.HasIndex(e => e.FormId, "UX_FormVersions_Published")
+                .IsUnique()
+                .HasFilter("[Status] = N'Published'");
+
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_FormVersions_VersionNumberPositive", "[VersionNumber] > (0)"));
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
             entity.Property(e => e.Status).HasMaxLength(20);
+            entity.Property(e => e.SchemaJson).HasColumnType("nvarchar(max)").IsRequired();
+            entity.Property(e => e.RowVersion).IsRowVersion();
 
             entity.HasOne(d => d.DerivedFromVersion).WithMany(p => p.InverseDerivedFromVersion)
                 .HasForeignKey(d => d.DerivedFromVersionId)

@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Form, Version, FormCreated } from '@/types/form';
-import { createForm, createFormFromVersion, getForms, getFormByIdWithVersions } from '@/services/form';
+import type { Form, FormCreated } from '@/types/form';
+import { createForm, createFormFromVersion, getForms } from '@/services/form';
+import { useFormDetailQuery } from '@/features/forms/hooks/useFormLifecycle';
 
 type CreateMode = 'nuevo' | 'desde-version';
 
@@ -25,55 +26,50 @@ const CreateFormPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [forms, setForms] = useState<Form[]>([]);
+  const [formsLoaded, setFormsLoaded] = useState(false);
+  const [formsError, setFormsError] = useState<string | null>(null);
   const [selectedFormId, setSelectedFormId] = useState<string>('');
-  const [selectedFormVersions, setSelectedFormVersions] = useState<Version[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string>('');
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>();
 
+  const selectedFormDetail = useFormDetailQuery(mode === 'desde-version' && selectedFormId ? selectedFormId : undefined);
+  const selectedFormVersions = selectedFormDetail.data?.versiones ?? [];
+
   const loadForms = async () => {
+    if (formsLoaded) return;
     try {
-      const data = await getForms();
-      setForms(data);
+      setForms(await getForms());
+      setFormsError(null);
     } catch (err) {
       console.error('Failed to load forms:', err);
+      setFormsError('No se pudieron cargar los formularios.');
+    } finally {
+      setFormsLoaded(true);
     }
   };
 
-  const loadFormVersions = async (formId: string) => {
-    try {
-      const formData = await getFormByIdWithVersions(formId);
-      console.log('Loaded form data with versions:', formData);
-      setSelectedFormVersions(formData.versiones);
-    } catch (err) {
-      console.error('Failed to load form versions:', err);
-    }
-  };
-
-  const handleModeChange = async (newMode: CreateMode) => {
+  const handleModeChange = (newMode: CreateMode) => {
     setMode(newMode);
     setSelectedFormId('');
-    setSelectedFormVersions([]);
     setSelectedVersionId('');
     setValue('formularioOrigenId', '');
     setValue('versionOrigenId', '');
 
     if (newMode === 'desde-version') {
-      await loadForms();
+      void loadForms();
     }
   };
 
-  const handleFormSelect = async (formId: string) => {
+  const handleFormSelect = (formId: string) => {
     setSelectedFormId(formId);
     setSelectedVersionId('');
     setValue('formularioOrigenId', formId);
     setValue('versionOrigenId', '');
-    setSelectedFormVersions([]);
-
-    await loadFormVersions(formId);
   };
-
-  const selectedForm = forms.find(f => f.id === selectedFormId);
+  const derivableVersions = selectedFormVersions.filter(
+    (version) => version.estado === 'Published' || version.estado === 'Archived'
+  );
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
@@ -186,6 +182,9 @@ const CreateFormPage = () => {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
+                  {formsError && (
+                    <p className="text-sm text-red-500 mt-1" role="alert">{formsError}</p>
+                  )}
                   <input type="hidden" {...register('formularioOrigenId', { required: mode === 'desde-version' ? 'Selecciona un formulario' : false })} />
                   {errors.formularioOrigenId && (
                     <p className="text-sm text-red-500 mt-1">{errors.formularioOrigenId.message}</p>
@@ -200,19 +199,35 @@ const CreateFormPage = () => {
                       setSelectedVersionId(value);
                       setValue('versionOrigenId', value);
                     }}
-                    disabled={!selectedForm}
+                    disabled={!selectedFormId || selectedFormDetail.isFetching}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={selectedForm ? "Selecciona una versión" : "Selecciona un formulario primero"} />
+                      <SelectValue placeholder={
+                        !selectedFormId
+                          ? 'Selecciona un formulario primero'
+                          : selectedFormDetail.isFetching
+                            ? 'Cargando versiones…'
+                            : 'Selecciona una versión'
+                      } />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Versiones</SelectLabel>
-                        {selectedFormVersions.map((version) => (
-                          <SelectItem key={version.id} value={version.id}>
-                            Versión {version.numero} ({version.estado})
-                          </SelectItem>
-                        ))}
+                        {selectedFormDetail.isError ? (
+                          <SelectLabel>No se pudieron cargar las versiones</SelectLabel>
+                        ) : derivableVersions.length > 0 ? (
+                          derivableVersions.map((version) => (
+                            <SelectItem key={version.id} value={version.id}>
+                              Versión {version.numero} ({version.estado === 'Published' ? 'publicada' : 'archivada'})
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectLabel>
+                            {selectedFormVersions.length > 0
+                              ? 'Este formulario no tiene versiones publicadas ni archivadas'
+                              : 'Este formulario no tiene versiones disponibles'}
+                          </SelectLabel>
+                        )}
                       </SelectGroup>
                     </SelectContent>
                   </Select>

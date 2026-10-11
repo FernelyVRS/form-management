@@ -15,7 +15,7 @@ context: |
 
   Backend:
   - Language: C#
-  - Framework: .NET 9
+  - Framework: .NET 10
   - API style: Minimal APIs with Carter
   - Architecture: Vertical Slice Architecture
   - ORM: Entity Framework, Data Base First approach
@@ -35,34 +35,53 @@ context: |
   - SchemaJson: JSON that defines the entire form structure
 
   JSON Schema Structure:
-  - Root: array of sections
+  - Canonical v1 root: { schemaVersion: 1, sections: [] }
+  - Contract: contracts/form-schema/v1/form-schema.schema.json
+  - Active builder uses v1 schema, a version-scoped draft and explicit Save
+  - View currently inspects structure read-only; answer renderer is a follow-up
   - Section:
       - id
       - type: "section"
-      - titulo
-      - entidad
-      - orden
+      - title
+      - description (optional plain text)
+      - entity
+      - order
       - items
+  - Group:
+      - id
+      - type: "group"
+      - label
+      - description (optional plain text)
+      - order
+      - items (fields only; no recursive groups)
   - Field:
       - id (technical identifier)
       - variable (external system key, must not change)
       - type: "field"
       - component: "text" | "number" | "select"
       - label
-      - orden
-      - options (optional)
-      - core (boolean)
+      - description (optional plain text)
+      - order
+      - core (required boolean)
+      - validation (optional; text maxLength or number min/max only)
+      - select uses options OR dependency + map, not both
+  - Option: { label: string, value: string }, unique non-empty values per list
 
   Dependencies:
   - Fields can depend on another field using:
-      dependencia:
-        campo: string
+      dependency:
+        field: string (external variable of another select)
   - Dynamic options are defined using:
       map:
         "value": [options]
 
   Important Constraints:
-  - Do NOT include validation logic in schema (handled separately)
+  - Allow only simple validation maxLength/min/max; no answer required or range
+  - Keep complex validation and business rules outside the schema
+  - Reject unknown properties, duplicate IDs/variables, broken references and cycles
+  - Sibling order is consecutive from 1; variables are globally unique and immutable
+  - English technical keys; localized content and external identifiers remain unchanged
+  - No legacy runtime reader; preserve old mock file through later relocation
   - Do NOT introduce new field types without justification
   - Avoid redundant properties
   - Keep schema declarative (no implicit logic)
@@ -102,9 +121,9 @@ rules:
     - Keep frontend renderer generic and reusable
 
   schema:
-    - Do NOT add validation rules inside schema
-    - Keep dependency structure simple (dependencia + map)
-    - Avoid duplicating properties (e.g., no repeated "campo")
+    - Allow only text maxLength and number min/max inside validation
+    - Keep dependency structure simple (dependency.field + sibling map)
+    - Avoid duplicating properties and reject unknown properties
     - Ensure compatibility with external system output
     - Keep schema minimal but expressive
 

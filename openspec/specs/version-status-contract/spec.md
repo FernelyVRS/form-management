@@ -21,19 +21,23 @@ The frontend SHALL use `Draft`, `Published`, and `Archived` as the canonical val
 - **WHEN** a version has status `Archived`
 - **THEN** frontend version-status mappings resolve the Archived presentation without a type error or fallback caused by a stale contract value
 
-### Requirement: Published source filtering
-The version creation modal SHALL include versions with status `Published` in its selectable source list and SHALL exclude versions with status `Draft` or `Archived`.
+### Requirement: Derivation source filtering
+The version creation modal SHALL include versions with status `Published` or `Archived` in its selectable source list and SHALL exclude versions with status `Draft`.
 
 #### Scenario: Published sources are available
 - **WHEN** the modal receives one or more `Published` versions
 - **THEN** each Published version is available for selection
 
-#### Scenario: Non-published sources are excluded
-- **WHEN** the modal receives `Draft` or `Archived` versions
+#### Scenario: Archived sources are available
+- **WHEN** the modal receives one or more `Archived` versions
+- **THEN** each Archived version is available for selection
+
+#### Scenario: Draft sources are excluded
+- **WHEN** the modal receives versions with status `Draft`
 - **THEN** those versions are not available for selection
 
-#### Scenario: No published source exists
-- **WHEN** the modal receives an empty list or only non-published versions
+#### Scenario: No derivation source exists
+- **WHEN** the modal receives an empty list or only `Draft` versions
 - **THEN** it displays the existing empty-state message and keeps the create action disabled
 
 ### Requirement: Localized labels remain presentation-only

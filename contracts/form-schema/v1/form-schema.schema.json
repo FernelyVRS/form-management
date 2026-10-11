@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:form-management:form-schema:v1",
+  "title": "Form schema v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sections"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "sections": { "type": "array", "items": { "$ref": "#/$defs/section" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$" },
+    "variable": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" },
+    "text": { "type": "string", "minLength": 1 },
+    "order": { "type": "integer", "minimum": 1 },
+    "section": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "title", "entity", "order", "items"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "type": { "const": "section" },
+        "title": { "$ref": "#/$defs/text" }, "description": { "type": "string" },
+        "entity": { "$ref": "#/$defs/text" }, "order": { "$ref": "#/$defs/order" },
+        "items": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/group" }, { "$ref": "#/$defs/field" }] } }
+      }
+    },
+    "group": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "label", "order", "items"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "type": { "const": "group" },
+        "label": { "$ref": "#/$defs/text" }, "description": { "type": "string" },
+        "order": { "$ref": "#/$defs/order" },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/field" } }
+      }
+    },
+    "field": {
+      "type": "object", "unevaluatedProperties": false,
+      "required": ["id", "type", "component", "variable", "label", "order", "core"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" }, "type": { "const": "field" },
+        "component": { "enum": ["text", "number", "select"] },
+        "variable": { "$ref": "#/$defs/variable" }, "label": { "$ref": "#/$defs/text" },
+        "description": { "type": "string" }, "order": { "$ref": "#/$defs/order" },
+        "core": { "type": "boolean" }
+      },
+      "oneOf": [
+        { "properties": { "component": { "const": "text" }, "validation": { "$ref": "#/$defs/textValidation" } } },
+        { "properties": { "component": { "const": "number" }, "validation": { "$ref": "#/$defs/numberValidation" } } },
+        {
+          "properties": { "component": { "const": "select" } },
+          "oneOf": [
+            { "required": ["options"], "properties": { "options": { "$ref": "#/$defs/options" } } },
+            {
+              "required": ["dependency", "map"],
+              "properties": {
+                "dependency": {
+                  "type": "object", "additionalProperties": false, "required": ["field"],
+                  "properties": { "field": { "$ref": "#/$defs/variable" } }
+                },
+                "map": { "type": "object", "additionalProperties": { "$ref": "#/$defs/options" } }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["label", "value"],
+        "properties": { "label": { "$ref": "#/$defs/text" }, "value": { "$ref": "#/$defs/text" } }
+      }
+    },
+    "textValidation": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "maxLength": { "type": "integer", "minimum": 1 } }
+    },
+    "numberValidation": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "min": { "type": "number" }, "max": { "type": "number" } }
+    }
+  }
+}

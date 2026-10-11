@@ -26,8 +26,7 @@ public class GetForms
                 return result;
             })
                 .WithTags("Form")
-                .Produces<List<Response>>()
-                .WithOpenApi();
+                .Produces<List<Response>>();
         }
     }
 
