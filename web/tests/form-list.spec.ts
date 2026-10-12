@@ -2,20 +2,20 @@ import { expect, test } from '@playwright/test';
 
 const form = {
   id: 'form-1',
-  nombre: 'Formulario Alpha',
-  descripcion: 'Primer formulario',
+  name: 'Formulario Alpha',
+  description: 'Primer formulario',
   createdAt: '2026-09-20T12:00:00',
   updatedAt: null,
-  totalVersiones: 1,
-  ultimaVersion: 1,
-  ultimaVersionId: 'version-1',
+  totalVersions: 1,
+  latestVersion: 1,
+  latestVersionId: 'version-1',
 };
 
 test('shows loading, loaded forms, filtering, and detail navigation', async ({ page }) => {
   await page.route('http://localhost:5165/forms', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
     await route.fulfill({
-      json: [form, { ...form, id: 'form-2', nombre: 'Formulario Beta' }],
+      json: [form, { ...form, id: 'form-2', name: 'Formulario Beta' }],
     });
   });
 

@@ -388,10 +388,10 @@ public sealed class LifecycleTests
         var v3 = await host.SeedVersion(v1.FormId, 3, "Draft", SqlSchemaTestHost.Empty, v2.Id);
         var response = await client.GetAsync($"/forms/{v1.FormId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var versions = (await Json(response))["versiones"]!.AsArray();
-        Assert.Equal(new[] { 1, 2, 3 }, versions.Select(item => item!["numeroVersion"]!.GetValue<int>()).ToArray());
+        var versions = (await Json(response))["versions"]!.AsArray();
+        Assert.Equal(new[] { 1, 2, 3 }, versions.Select(item => item!["number"]!.GetValue<int>()).ToArray());
         Assert.Equal(new[] { "Archived", "Published", "Draft" },
-            versions.Select(item => item!["estado"]!.GetValue<string>()).ToArray());
+            versions.Select(item => item!["status"]!.GetValue<string>()).ToArray());
     }
 
     private sealed class FailingSavedChangesInterceptor : SaveChangesInterceptor

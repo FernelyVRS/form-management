@@ -93,7 +93,7 @@ public sealed class SchemaPersistenceTests
     {
         await using var host = await SqlSchemaTestHost.Create();
         using var client = host.Client;
-        var created = await client.PostAsJsonAsync("/forms", new { nombre = "New canonical form", descripcion = "Test" });
+        var created = await client.PostAsJsonAsync("/forms", new { name = "New canonical form", description = "Test" });
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var metadata = await Json(created);
         var formId = metadata["formId"]!.GetValue<string>();

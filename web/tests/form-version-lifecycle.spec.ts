@@ -8,8 +8,8 @@ const version = (
   id = `v-${estado.toLowerCase()}`,
 ) => ({
   id,
-  numeroVersion,
-  estado,
+  number: numeroVersion,
+  status: estado,
   rowVersion: 'AAAAAAAAAAE=',
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: null,
@@ -17,11 +17,11 @@ const version = (
 
 const detail = (versiones: ReturnType<typeof version>[], overrides: Record<string, unknown> = {}) => ({
   id: 'form-1',
-  nombre: 'Formulario Alpha',
-  descripcion: 'Descripción del formulario',
+  name: 'Formulario Alpha',
+  description: 'Descripción del formulario',
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: null,
-  versiones,
+  versions: versiones,
   ...overrides,
 });
 
@@ -186,7 +186,7 @@ test('clone success navigates to the new form using response identifiers', async
     route.fulfill({ json: lifecycleResponse({ formId: 'form-new', versionId: 'v-clone', number: 1 }) }),
   );
   await page.route(`${api}/forms/form-new`, route =>
-    route.fulfill({ json: detail([version(1, 'Draft', 'v-clone')], { id: 'form-new', nombre: 'Copia con error' }) }),
+    route.fulfill({ json: detail([version(1, 'Draft', 'v-clone')], { id: 'form-new', name: 'Copia con error' }) }),
   );
 
   await page.goto('/forms/form-1');

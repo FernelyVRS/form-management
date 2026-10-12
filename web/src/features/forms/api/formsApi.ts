@@ -4,11 +4,11 @@ import type { Form } from '@/types/form';
 
 const formListItemSchema = z.object({
   id: z.string().min(1),
-  nombre: z.string(),
-  descripcion: z.string().nullable(),
-  totalVersiones: z.number().int().nonnegative(),
-  ultimaVersion: z.number().int().nonnegative(),
-  ultimaVersionId: z.string().min(1),
+  name: z.string(),
+  description: z.string().nullable(),
+  totalVersions: z.number().int().nonnegative(),
+  latestVersion: z.number().int().nonnegative(),
+  latestVersionId: z.string().min(1),
   createdAt: z.string(),
   updatedAt: z.string().nullable(),
 });
@@ -16,8 +16,13 @@ const formListItemSchema = z.object({
 const formListSchema = z.array(formListItemSchema);
 
 const mapForm = (form: z.infer<typeof formListItemSchema>): Form => ({
-  ...form,
-  descripcion: form.descripcion ?? undefined,
+  id: form.id,
+  nombre: form.name,
+  descripcion: form.description ?? undefined,
+  totalVersiones: form.totalVersions,
+  ultimaVersion: form.latestVersion,
+  ultimaVersionId: form.latestVersionId,
+  createdAt: form.createdAt,
   updatedAt: form.updatedAt ?? form.createdAt,
 });
 

@@ -116,7 +116,7 @@ Notas:
 
 ### TASK-003 - Especificar el contrato HTTP básico de formularios
 
-Estado: Pendiente
+Estado: Completada
 
 Prioridad: Alta
 
@@ -163,11 +163,12 @@ Criterios generales:
 - `openspec status --change <nombre>` indica que todos los artefactos requeridos para apply están completos.
 - `openspec validate --all` finaliza correctamente.
 
-OpenSpec: Pendiente
+OpenSpec: `openspec/changes/specify-form-http-contract/` (implementado 2026-10-12)
 
 Notas:
 - Tamaño estimado: pequeño.
 - Esta tarea documenta decisiones; no implementa funcionalidad.
+- Cierre 2026-10-12: change `specify-form-http-contract` implementado y verificado (backend 94/94 con SQL real, frontend 96/96 unitarios, build/lint verdes, `openspec validate --all` 9/9). Matriz aprobada: respuesta directa, claves en inglés unificadas con el ciclo de vida (breaking wire) y ProblemDetails con `code`. El frontend mantiene el modelo interno en español y traduce en la frontera Zod.
 - Confirmado por OpenSpec: existe una spec principal válida y un change archivado para `version-status-contract`; no hay cambios activos ni una spec del contrato HTTP básico.
 - Confirmado por código: `POST /forms` devuelve un DTO directo, `GET /forms` ya es directo y el detalle usa `numeroVersion`, mientras algunos consumidores frontend esperan `{ data }` y `numero`.
 - Decisión humana pendiente: aprobar la matriz contractual. No asumir como requisito la recomendación técnica de respuesta directa o nombres en español.
@@ -314,6 +315,8 @@ Notas:
 ### TASK-006 - Alinear el contrato básico de formularios
 
 Estado: Pendiente
+
+Nota 2026-10-12: TASK-003 (`specify-form-http-contract`) quedó implementada y provee el target formal de la matriz contractual (respuesta directa, claves en inglés unificadas, ProblemDetails con `code`, UTC, `Location`). TASK-006 queda reducida a los residuos de alineación no cubiertos por ese cambio: `GetFormVersionById` (devuelve entidad EF sin DTO canónico), revisión de consumidores externos y nullability restante en rutas adyacentes.
 
 Prioridad: Media
 

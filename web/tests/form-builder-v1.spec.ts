@@ -225,8 +225,8 @@ test('pointer drag reorders sections locally without sending PUT', async ({ page
 
 test('detail maps backend version numbers and opens Draft in the canonical builder', async ({ page }) => {
   await page.route('http://localhost:5165/forms/form', handler => handler.fulfill({ json: {
-    id: 'form', nombre: 'Formulario detalle', descripcion: null, createdAt: '2026-10-01T12:00:00Z', updatedAt: null,
-    versiones: [{ id: 'version', numeroVersion: 3, estado: 'Draft', rowVersion: 'AAAAAAAAAAE=', createdAt: '2026-10-01T12:00:00Z', updatedAt: null }],
+    id: 'form', name: 'Formulario detalle', description: null, createdAt: '2026-10-01T12:00:00Z', updatedAt: null,
+    versions: [{ id: 'version', number: 3, status: 'Draft', rowVersion: 'AAAAAAAAAAE=', createdAt: '2026-10-01T12:00:00Z', updatedAt: null }],
   } }));
   await page.route(api, handler => handler.fulfill({ json: { ...response({ schemaVersion: 1, sections: [] }), number: 3 } }));
   await page.goto('/forms/form');
@@ -237,7 +237,7 @@ test('detail maps backend version numbers and opens Draft in the canonical build
 });
 
 test('direct creation response navigates to the new empty builder', async ({ page }) => {
-  await page.route('http://localhost:5165/forms', handler => handler.fulfill({ status: 201, json: { formId: 'form', versionId: 'version', numeroVersion: 1 } }));
+  await page.route('http://localhost:5165/forms', handler => handler.fulfill({ status: 201, json: { formId: 'form', versionId: 'version', number: 1 } }));
   await page.route(api, handler => handler.fulfill({ json: response({ schemaVersion: 1, sections: [] }) }));
   await page.goto('/forms/create');
   await page.getByLabel('Nombre *', { exact: true }).fill('Nuevo formulario');
@@ -252,12 +252,12 @@ test('live existing version is read without altering development data', async ({
   expect(formsResponse.ok()).toBe(true);
   const forms = await formsResponse.json();
   expect(forms.length).toBeGreaterThan(0);
-  const { id, ultimaVersionId } = forms[0];
-  const schemaResponse = await request.get(`http://localhost:5165/forms/${id}/versions/${ultimaVersionId}/schema`);
+  const { id, latestVersionId } = forms[0];
+  const schemaResponse = await request.get(`http://localhost:5165/forms/${id}/versions/${latestVersionId}/schema`);
   expect(schemaResponse.ok()).toBe(true);
   const current = await schemaResponse.json();
-  await page.goto(`/forms/${id}/versions/${ultimaVersionId}/builder`);
-  await expect(page.getByRole('heading', { name: `${forms[0].nombre} · v${current.number}` })).toBeVisible();
+  await page.goto(`/forms/${id}/versions/${latestVersionId}/builder`);
+  await expect(page.getByRole('heading', { name: `${forms[0].name} · v${current.number}` })).toBeVisible();
   expect(JSON.parse(await page.getByTestId('schema-json').textContent() ?? '{}')).toEqual(current.schema);
   await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toBeDisabled();
 });

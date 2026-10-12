@@ -22,6 +22,18 @@ Cierre de TASK-004 y TASK-005 vía el change archivado `reproducible-local-envir
 - Playwright siempre headed: `headless: false` en `web/playwright.config.ts`; el `webServer` inicia Vite en 5173. Los 3 suites legacy de tabs fueron eliminados (2026-10-10); quedan 4 archivos y 29 tests, todos en verde.
 - Verificación: backend 83/83, frontend 85/85 unitarios, `pnpm build` y `pnpm lint` verdes.
 
+### Actualización: contrato HTTP de formularios (2026-10-12)
+
+Cambio OpenSpec `specify-form-http-contract` implementado y verificado (14 tareas). Los tres endpoints básicos quedan alineados a la matriz aprobada, unificando el wire format con los endpoints del ciclo de vida. **Cambio breaking en el wire:** las respuestas ahora usan claves en inglés; el modelo interno del frontend permanece en español y la traducción ocurre solo en la frontera Zod (`formsApi.ts`, `useFormLifecycle.ts`, `services/form.ts`).
+
+- `GET /forms` → `[{ id, name, description, createdAt, updatedAt, totalVersions, latestVersion, latestVersionId }]`, proyección de última versión null-safe (sin `First()` que lanza).
+- `POST /forms` → request `{ name, description? }` con validación manual (name faltante/vacío/no-string, description no-string o JSON malformado → `400 invalid_request` sin efectos secundarios); respuesta `201 { formId, versionId, number }` + `Location: /forms/{formId}`; timestamps UTC (`DateTime.UtcNow`).
+- `GET /forms/{formId}` → `{ id, name, description, createdAt, updatedAt, versions: [{ id, number, status, rowVersion, createdAt, updatedAt }] }` ordenados asc por number; `404` con ProblemDetails `code: form_not_found`.
+- ProblemDetails unificado: helper extraído a `Features/Forms/Shared/Problems/ApiProblems.cs`; `LifecycleProblems` delega sin cambio de comportamiento.
+- Playwright: fixtures de `builder-workspace`, `form-builder-v1`, `form-list` y `form-version-lifecycle` migrados a claves inglesas.
+
+Verificación: backend **94/94** con SQL real (`FormHttpContractTests` añade 11 tests de contrato con `SqlSchemaTestHost`; `SchemaPersistenceTests` y `LifecycleTests` actualizados al wire nuevo); frontend **96/96** unitarios (tests de frontera en `formsApi.test.ts`, `useFormLifecycle.test.ts`, `form.test.ts` que rechazan el formato legacy), `pnpm build` y `pnpm lint` (0/0) verdes; `openspec validate --all` 9/9. Verificado en vivo: API Docker reconstruida responde con claves inglesas y nulls presentes (`"description"`, `"updatedAt":null`); openapi/v1.json sin claves legacy.
+
 ### Actualización: ciclo de vida de versiones (2026-10-10)
 
 Ciclo de versiones completo en código: `POST /forms/{id}/versions` (derivar desde Published/Archived), `POST /forms/from-version` (clonar formulario), `POST .../publish` (atómico, archiva la publicación anterior) y `POST .../archive` (solo Draft), con ≤1 Draft y ≤1 Published por formulario, numeración estable que incluye Archived, lock de fila y transacciones explícitas. ProblemDetails con códigos estables (`version_conflict`, `not_publishable`, etc.). `GetFormById` devuelve versiones ordenadas con `rowVersion` y 404 real.
@@ -436,11 +448,10 @@ Las variantes difieren en nombres de propiedades, tipos, validaciones, dependenc
 
 Prioridad alta:
 
-1. Formalizar en OpenSpec el contrato HTTP básico de formularios (TASK-003), que los endpoints de ciclo de vida ya practican con respuesta directa y códigos estables.
+1. ~~Formalizar en OpenSpec el contrato HTTP básico de formularios (TASK-003)~~ — completado 2026-10-12 con el change `specify-form-http-contract` (aplicado y verificado; ver sección "Actualización: contrato HTTP de formularios").
 2. Implementar el renderer dinámico `render-form-schema-v1` (backlog item 4): la última pieza funcional del ciclo definir→editar→versionar→publicar→ver.
-3. Re-auditar dependencias frontend (15 vulnerabilidades en la auditoría de 2026-09-19, sin repetir) y actualizar paquetes afectados.
 
-Cerrado o mayormente cerrado desde el 2026-09-20: TASK-001 (build), TASK-002 (lint, archivado), TASK-004 y TASK-005 (entorno reproducible, archivados 2026-10-10), TASK-006 (contrato básico: respuesta directa, numeroVersion, 404 real; falta la spec formal TASK-003), TASK-007 (suites legacy de tabs eliminados 2026-10-10), TASK-008 (creación/clonado/publicación/archivo de versiones, era `manage-form-version-lifecycle`), TASK-009 (mayormente: /view y no-Draft son read-only; quedan matices de protección por URL).
+Cerrado o mayormente cerrado desde el 2026-09-20: TASK-001 (build), TASK-002 (lint, archivado), TASK-004 y TASK-005 (entorno reproducible, archivados 2026-10-10), TASK-003 (spec formal del contrato HTTP, completado 2026-10-12), TASK-006 (contrato básico: respuesta directa y ciclo de vida; residuos acotados tras TASK-003: `GetFormVersionById` y nullability restante), TASK-007 (suites legacy de tabs eliminados 2026-10-10), TASK-008 (creación/clonado/publicación/archivo de versiones, era `manage-form-version-lifecycle`), TASK-009 (mayormente: /view y no-Draft son read-only; quedan matices de protección por URL).
 
 Trabajo posterior sin tarea acotada: renderer de respuestas, persistencia de respuestas, listas de entidades y reglas complejas, contrato de integración con el sistema consumidor, CI, health checks y autenticación.
 
@@ -488,12 +499,12 @@ Los documentos de `web/docs/specs/` son especificaciones manuales y no artefacto
 
 ### Contratos e integración
 
-- El frontend consume cinco endpoints que el backend no implementa.
-- `POST /forms` devuelve una forma distinta a la esperada por el frontend.
-- El backend expone `numeroVersion`; el frontend espera `numero`.
-- Los GET por ID devuelven `200` con `null` en vez de `404`.
-- `GetFormVersionById` documenta un DTO, pero devuelve una entidad EF.
-- `SchemaJson` se almacena sin validación estructural.
+- ~~El frontend consume cinco endpoints que el backend no implementa.~~ (histórico; el renderer de respuestas aún no existe, ver trabajo pendiente).
+- ~~`POST /forms` devuelve una forma distinta a la esperada por el frontend.~~ Resuelto 2026-10-12: request `{ name, description? }`, respuesta `201 { formId, versionId, number }` + `Location`.
+- ~~El backend expone `numeroVersion`; el frontend espera `numero`.~~ Resuelto 2026-10-12 (breaking wire): el wire usa `number`; el frontend mapea a `numero` en la frontera Zod.
+- ~~Los GET por ID devuelven `200` con `null` en vez de `404`.~~ Resuelto 2026-10-12: `404` con ProblemDetails `code: form_not_found`.
+- `GetFormVersionById` documenta un DTO, pero devuelve una entidad EF. (Residual de TASK-006.)
+- `SchemaJson` se almacena sin validación estructural. (Supersedido por la validación v1 de persistencia; ver `form-version-schema-persistence`.)
 
 ### Bugs funcionales conocidos
 
@@ -509,9 +520,9 @@ Los documentos de `web/docs/specs/` son especificaciones manuales y no artefacto
 
 ### Seguridad de dependencias
 
-Resultado de las auditorías al 2026-09-19:
+Auditoría original (2026-09-19): 15 vulnerabilidades frontend, incluidas 9 altas.
 
-- Frontend: 15 vulnerabilidades, incluyendo 9 altas. **Sin re-auditar**; queda pendiente actualizar dependencias afectadas.
+**Re-auditoría y corrección 2026-10-11**: `pnpm audit` reportó 41 vulnerabilidades (2 críticas, 25 altas, 12 moderadas, 2 bajas) y tras la remediación quedó en **0**. Acciones: `react-router` → 7.18.4, `vite` → 6.4.4, `vitest` → 4.1.11 (mayor; cubre las críticas de `tinypool`) y fijación de transitivos vía `pnpm.overrides` (`brace-expansion`, `postcss`, `nanoid`, `browserslist`, `js-yaml`, `source-map-js`, `@babel/core`, `baseline-browser-mapping`). Verificación: build, lint 0/0 y 85/85 unit en vitest 4.1.11.
 - Backend: `Microsoft.OpenApi` transitivo con vulnerabilidad alta (GHSA-v5pm-xwqc-g5wc) — **resuelto el 2026-10-10** fijando `Microsoft.OpenApi 2.7.5`; `dotnet list package --vulnerable` reporta 0 vulnerabilidades.
 - Hay paquetes transitivos backend marcados como deprecated (NU1903 se resolvió junto con el pin; revisar deprecated en la próxima actualización de dependencias).
 

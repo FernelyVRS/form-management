@@ -7,15 +7,15 @@ namespace FormManagementApi.Features.Forms.GetForms;
 public class GetForms
 {
     public record Response(
-        Guid Id,  
-        string Nombre,  
-        string? Descripcion, 
-        DateTime CreatedAt, 
-        DateTime? UpdatedAt, 
-        int TotalVersiones, 
-        int UltimaVersion,
-        Guid UltimaVersionId);
-    
+        Guid Id,
+        string Name,
+        string? Description,
+        DateTime CreatedAt,
+        DateTime? UpdatedAt,
+        int TotalVersions,
+        int LatestVersion,
+        Guid LatestVersionId);
+
     public class Endpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
@@ -30,23 +30,36 @@ public class GetForms
         }
     }
 
-    public static async Task<IResult> Handler(AppDbContext  context)
+    public static async Task<IResult> Handler(AppDbContext context)
     {
         var forms = await context.Forms
             .OrderByDescending(y => y.CreatedAt)
-            .Select(x => 
-                new Response(
-                    x.Id, 
-                    x.Name, 
-                    x.Description, 
-                    x.CreatedAt,  
-                    x.UpdatedAt, 
-                    x.FormVersions.Count,
-                    x.FormVersions.OrderByDescending(y => y.CreatedAt).First().VersionNumber,
-                    x.FormVersions.OrderByDescending(y => y.CreatedAt).First().Id
-                    ))
+            .Select(x => new
+            {
+                x.Id,
+                x.Name,
+                x.Description,
+                x.CreatedAt,
+                x.UpdatedAt,
+                TotalVersions = x.FormVersions.Count,
+                Latest = x.FormVersions
+                    .OrderByDescending(v => v.VersionNumber)
+                    .Select(v => new { v.VersionNumber, v.Id })
+                    .FirstOrDefault()
+            })
             .ToListAsync();
-        
-        return Results.Ok(forms);
+
+        var result = forms.Select(x => new Response(
+            x.Id,
+            x.Name,
+            x.Description,
+            x.CreatedAt,
+            x.UpdatedAt,
+            x.TotalVersions,
+            x.Latest?.VersionNumber ?? 0,
+            x.Latest?.Id ?? Guid.Empty))
+            .ToList();
+
+        return Results.Ok(result);
     }
 }

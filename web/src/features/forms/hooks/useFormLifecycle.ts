@@ -17,15 +17,15 @@ export const formDetailKeys = {
 
 const formDetailSchema = z.object({
   id: z.string(),
-  nombre: z.string(),
-  descripcion: z.string().nullable(),
+  name: z.string(),
+  description: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string().nullable(),
-  versiones: z.array(
+  versions: z.array(
     z.object({
       id: z.string(),
-      numeroVersion: z.number().int().positive(),
-      estado: z.enum(['Draft', 'Published', 'Archived']),
+      number: z.number().int().positive(),
+      status: z.enum(['Draft', 'Published', 'Archived']),
       rowVersion: z.string().min(1),
       createdAt: z.string(),
       updatedAt: z.string().nullable(),
@@ -35,14 +35,14 @@ const formDetailSchema = z.object({
 
 const mapDetail = (detail: z.infer<typeof formDetailSchema>): FormWithVersions => ({
   id: detail.id,
-  nombre: detail.nombre,
-  descripcion: detail.descripcion ?? undefined,
+  nombre: detail.name,
+  descripcion: detail.description ?? undefined,
   createdAt: detail.createdAt,
   updatedAt: detail.updatedAt ?? detail.createdAt,
-  versiones: detail.versiones.map(version => ({
+  versiones: detail.versions.map(version => ({
     id: version.id,
-    numero: version.numeroVersion,
-    estado: version.estado,
+    numero: version.number,
+    estado: version.status,
     rowVersion: version.rowVersion,
     createdAt: version.createdAt,
     updatedAt: version.updatedAt ?? version.createdAt,

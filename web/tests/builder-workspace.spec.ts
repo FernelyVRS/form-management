@@ -10,8 +10,8 @@ const response = (document: unknown, token = 'AAAAAAAAAAE=') => ({ formId: 'work
 
 async function setup(page: Page, onSave?: (document: unknown) => void) {
   await page.route('http://localhost:5165/forms/workspace', handler => handler.fulfill({ json: {
-    id: 'workspace', nombre: 'Formulario de prueba v1', descripcion: null, createdAt: '2026-10-01T12:00:00Z', updatedAt: null,
-    versiones: [{ id: 'draft', numeroVersion: 1, estado: 'Draft', rowVersion: 'AAAAAAAAAAE=', createdAt: '2026-10-01T12:00:00Z', updatedAt: null }],
+    id: 'workspace', name: 'Formulario de prueba v1', description: null, createdAt: '2026-10-01T12:00:00Z', updatedAt: null,
+    versions: [{ id: 'draft', number: 1, status: 'Draft', rowVersion: 'AAAAAAAAAAE=', createdAt: '2026-10-01T12:00:00Z', updatedAt: null }],
   } }));
   await page.route(api, async handler => {
     if (handler.request().method() === 'PUT') {

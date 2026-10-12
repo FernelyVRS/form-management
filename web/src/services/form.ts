@@ -11,7 +11,7 @@ export const createForm = async (input: { nombre: string; descripcion?: string }
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(input)
+        body: JSON.stringify({ name: input.nombre, description: input.descripcion ?? null })
     });
 
     if (!response.ok) {
@@ -19,7 +19,8 @@ export const createForm = async (input: { nombre: string; descripcion?: string }
     }
 
     const json = await response.json();
-    return z.object({ formId: z.string().min(1), versionId: z.string().min(1), numeroVersion: z.number().int().positive() }).parse(json);
+    const parsed = z.object({ formId: z.string().min(1), versionId: z.string().min(1), number: z.number().int().positive() }).parse(json);
+    return { formId: parsed.formId, versionId: parsed.versionId, numeroVersion: parsed.number };
 };
 
 export const createFormFromVersion = async (input: {

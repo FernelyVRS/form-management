@@ -40,10 +40,7 @@ public sealed record LifecycleVersionResponse(
 public static class LifecycleProblems
 {
     public static IResult Create(int status, string code) =>
-        Results.Problem(
-            statusCode: status,
-            title: code,
-            extensions: new Dictionary<string, object?> { ["code"] = code });
+        Shared.Problems.ApiProblems.Create(status, code);
 }
 
 public static class LifecycleCommands
