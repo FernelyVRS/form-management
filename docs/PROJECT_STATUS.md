@@ -161,14 +161,11 @@ web/src/features/forms/
 Responsabilidades compartidas:
 
 - `src/components/ui/`: primitives de UI.
-- `src/components/forms/`: controles reutilizables por tipo de campo.
-- `src/components/dnd/`: componentes drag-and-drop.
 - `src/services/`: acceso HTTP.
-- `src/store/`: stores Zustand.
+- `src/features/forms/builder/formBuilderStore.ts`: store Zustand del borrador del builder (los stores de `src/store/` sin consumidores fueron eliminados el 2026-10-11).
 - `src/types/`: contratos TypeScript.
-- `src/mocks/`: estructura simulada de formulario.
 
-El frontend combina actualmente estado local React, Zustand, TanStack Query y datos mock. Las responsabilidades entre estas fuentes todavía no están estabilizadas.
+El frontend combina estado local React, TanStack Query (datos remotos) y Zustand (borrador local aislado por versión). Las fuentes de verdad remotas son la API; el mock global fue eliminado el 2026-10-11 y las responsabilidades entre Query y estado local están definidas por uso (detalle/listado/lifecycle en Query, edición en el store del builder).
 
 ### Backend
 
@@ -319,11 +316,12 @@ pnpm dev
 pnpm build
 pnpm lint
 pnpm preview
+pnpm test:unit
 ```
 
-No existen scripts `test`, `typecheck` o `test:e2e`.
+No existen scripts `test`, `typecheck` o `test:e2e` (la suite E2E se ejecuta con `pnpm exec playwright test`).
 
-Resultado al 2026-09-20: `pnpm build` finaliza correctamente. Vite mantiene un warning no bloqueante porque el chunk principal supera 500 kB después de minificación.
+Resultado al 2026-10-15: `pnpm build` finaliza sin warnings (chunks vendor desde `manualChunks`); el warning histórico de chunk >500 kB quedó resuelto.
 
 ### Tests
 
@@ -334,9 +332,9 @@ pnpm exec playwright install chromium
 pnpm exec playwright test
 ```
 
-Estado verificado: Playwright descubre 15 tests, pero la suite actual falla porque navega a `/` esperando el builder y esa ruta ahora muestra `FormListPage`.
+Estado verificado (2026-10-15): la suite activa son 4 archivos (form-list, builder-workspace, form-builder-v1, form-version-lifecycle) en verde con `baseURL` y `webServer` activos; los 15 tests legacy que navegaban a la ruta antigua fueron eliminados el 2026-10-10.
 
-`dotnet test` finaliza correctamente, pero no ejecuta pruebas porque la solución no contiene un proyecto de tests.
+`dotnet test` ejecuta 96 pruebas (`api/FormManagementApi.Tests`) con SQL real vía `FORM_SCHEMA_TEST_SQL`.
 
 ## Configuración requerida
 
@@ -353,14 +351,12 @@ Problemas confirmados:
 - La connection string de desarrollo contiene una contraseña SQL en texto plano.
 - `DockerConnection` solo está presente en `appsettings.Development.json`.
 - No hay configuración de conexión para otros ambientes dentro del repositorio.
-- La conexión llamada `DockerConnection` apunta a `localhost`, pero no existe configuración Docker para crear SQL Server.
+- ~~La conexión llamada `DockerConnection` apunta a `localhost`, pero no existe configuración Docker para crear SQL Server.~~ (Resuelto: `compose.yml` provisiona SQL Server con healthcheck y `db-init`; ver sección "Base de datos".)
 
 ### Frontend
 
-- La URL del API está hardcodeada como `https://localhost:7284` en `web/src/services/form.ts`.
-- No se usa `VITE_API_URL`.
-- No existen archivos `.env`.
-- Vite no tiene proxy hacia el backend.
+- La URL del API se resuelve en `web/src/config/env.ts` mediante `VITE_API_URL` (default `http://localhost:5165`; obligatoria en producción).
+- No hay proxy de Vite hacia el backend: la API se consume por URL absoluta.
 
 ### Versiones y reproducibilidad
 
@@ -386,22 +382,25 @@ Las siguientes piezas existen y funcionan al menos de forma aislada. Esto no imp
 - `GET /forms/{id}`.
 - `GET /forms/{formId}/versions/{versionId}`.
 - `POST /forms`, que crea un formulario y su primera versión Draft.
+- Ciclo de vida completo: `POST /forms/{formId}/versions` (derivar desde Published/Archived), `POST /forms/from-version` (clonar formulario), `POST .../publish` (atómico, archiva la publicación anterior) y `POST .../archive` (solo Draft).
+- Invariantes SQL: ≤1 Draft y ≤1 Published por formulario (índices filtrados de la migración 002) y numeración estable que incluye Archived.
+- Persistencia de schema: `GET/PUT /forms/{formId}/versions/{versionId}/schema` con validación v1, Draft-only y concurrencia por RowVersion.
+- ProblemDetails con códigos estables (`form_not_found`, `version_not_found`, `version_conflict`, `not_publishable`, …) y timestamps UTC-Z en las rutas GET.
 - OpenAPI y Scalar en Development.
 
 ### Frontend
 
-- Rutas para listado, creación, detalle, builder y visualización.
+- Rutas para listado, creación, detalle, builder (`/builder`) e inspector read-only (`/view`).
 - Listado visual de formularios.
 - Búsqueda local por nombre y descripción.
-- Pantalla de creación de formulario.
-- Pantalla de detalle con estados de carga, error y reintento.
-- Historial visual mediante `VersionCard` y `StatusBadge`.
+- Pantalla de creación de formulario integrada con `POST /forms`.
+- Pantalla de detalle con estados de carga, error y reintento, resumen real de publicación e historial mediante `VersionCard` y `StatusBadge`.
+- Ciclo de vida desde el detalle: nueva versión (o "Continuar borrador"), publicar, archivar y clonar, con confirmaciones cancelables y manejo de conflictos.
 - Contrato frontend de estados de versión alineado con backend y SQL: `Draft`, `Published` y `Archived`.
-- `VersionModal` reconoce versiones `Published`, excluye Draft y Archived como fuentes y conserva el estado vacío cuando no hay versiones publicadas.
-- CRUD local de secciones y preguntas mediante Zustand.
-- Formularios construidos con React Hook Form.
-- Reordenamiento de secciones y preguntas mediante drag-and-drop.
-- Componentes para preguntas de texto, número, selección, selección dependiente y compuestas.
+- `VersionModal` acepta fuentes `Published` y `Archived`, excluye Draft y conserva el estado vacío cuando no hay versiones elegibles.
+- Builder conectado a la API con borrador aislado por versión, Guardar explícito (PUT con RowVersion) y guards de cambios sin guardar y propiedades sin aplicar.
+- CRUD de secciones, grupos de un nivel y campos con React Hook Form y drag-and-drop; componentes de texto, número, selección, selección dependiente y compuestas.
+- Editor de opciones y mapa de dependencias con JSON avanzado opcional; outline con búsqueda.
 
 ### Organización
 
@@ -411,49 +410,15 @@ Las siguientes piezas existen y funcionan al menos de forma aislada. Esto no imp
 
 ## Funcionalidades parcialmente implementadas
 
-### Gestión de versiones
+### Visualización de versiones (TASK-009)
 
-- `CreateFormVersion.cs` es un stub sin endpoint ni handler.
-- No existe creación o clonado de versiones en backend.
-- No existe publicación en backend.
-- No se garantiza un único Draft.
-- No existe archivado.
-- `VersionModal` está montado, pero no hay un control activo que lo abra desde `FormDetailPage`.
-- Las acciones de publicar y editar Draft están comentadas.
-- Un Draft muestra `Edit`, pero navega a `/view`.
-- La tarjeta de versión actual está hardcodeada como `v1.0.0 / Publicada`.
+- `/builder` y `/view` son rutas y páginas separadas (`FormBuilderPage`, `FormVersionViewPage`); el builder resuelve la versión desde el servidor y solo habilita edición si su estado es `Draft`.
+- El backend vuelve a exigir `Draft` al guardar (`PUT .../schema` Draft-only), de modo que Published y Archived son inmutables también fuera de la UI.
+- Quedan matices de protección por URL (defensa en profundidad ante estados/cargas en transición y cobertura E2E de acceso directo), documentados en TASK-009.
 
-### Builder y persistencia
+### Renderer de versiones
 
-- El builder carga inicialmente un mock global.
-- Intenta cargar y guardar estructura mediante endpoints que no existen.
-- Solo el drag-and-drop intenta persistir.
-- Crear, editar y eliminar secciones o preguntas solo modifica Zustand.
-- La pestaña `Opciones` es un placeholder.
-- Los inputs de filtro no tienen lógica.
-
-### Visualización de versiones
-
-- `/builder` y `/view` renderizan el mismo `FormPage` editable.
-- No se impide editar una versión Published por URL directa.
-- No existe un modo read-only efectivo.
-
-### Creación de formularios
-
-- El formulario frontend existe.
-- El backend `POST /forms` existe.
-- La integración está rota porque el frontend espera `json.data` y el backend devuelve el DTO directamente.
-- La creación desde una versión llama a un endpoint inexistente.
-
-### Schema JSON
-
-No existe un contrato único implementado. Conviven al menos tres variantes:
-
-- El formato definido en `openspec/config.yaml` y el PRD.
-- Los tipos y mock actuales del frontend.
-- `json sructure borrador.json`.
-
-Las variantes difieren en nombres de propiedades, tipos, validaciones, dependencias y estructura de secciones.
+- `/view` es un inspector de estructura read-only, no un formulario para responder; el renderer dinámico `render-form-schema-v1` (con selects dependientes y constraints en tiempo de uso) todavía no existe (ver Trabajo pendiente).
 
 ## Trabajo pendiente
 
@@ -462,7 +427,7 @@ Prioridad alta:
 1. ~~Formalizar en OpenSpec el contrato HTTP básico de formularios (TASK-003)~~ — completado 2026-10-12 con el change `specify-form-http-contract` (aplicado y verificado; ver sección "Actualización: contrato HTTP de formularios").
 2. Implementar el renderer dinámico `render-form-schema-v1` (backlog item 4): la última pieza funcional del ciclo definir→editar→versionar→publicar→ver.
 
-Cerrado o mayormente cerrado desde el 2026-09-20: TASK-001 (build), TASK-002 (lint, archivado), TASK-004 y TASK-005 (entorno reproducible, archivados 2026-10-10), TASK-003 (spec formal del contrato HTTP, completado 2026-10-12), TASK-006 (contrato básico: respuesta directa y ciclo de vida; sus residuos `GetFormVersionById` y nullability restante quedaron cerrados 2026-10-15), TASK-007 (suites legacy de tabs eliminados 2026-10-10), TASK-008 (creación/clonado/publicación/archivo de versiones, era `manage-form-version-lifecycle`), TASK-009 (mayormente: /view y no-Draft son read-only; quedan matices de protección por URL).
+Cerrado o mayormente cerrado desde el 2026-09-20: TASK-001 (build), TASK-002 (lint, archivado), TASK-004 y TASK-005 (entorno reproducible, archivados 2026-10-10), TASK-003 (spec formal del contrato HTTP, completado 2026-10-12), TASK-006 (contrato básico: respuesta directa y ciclo de vida; sus residuos `GetFormVersionById` y nullability restante quedaron cerrados 2026-10-15), TASK-007 (suite E2E mínima completada: infraestructura Playwright activa y casos de listado/creación/detalle/builder/lifecycle; suites legacy de tabs eliminados 2026-10-10), TASK-008 (creación/clonado/publicación/archivo de versiones, era `manage-form-version-lifecycle`), TASK-009 (mayormente: /view y no-Draft son read-only; quedan matices de protección por URL).
 
 Trabajo posterior sin tarea acotada: renderer de respuestas, persistencia de respuestas, listas de entidades y reglas complejas, contrato de integración con el sistema consumidor, CI, health checks y autenticación.
 
@@ -523,10 +488,11 @@ Los documentos de `web/docs/specs/` son especificaciones manuales y no artefacto
 
 ### Tests
 
-- Suite Playwright: 29 tests en 4 archivos desde el 2026-10-10; `baseURL` y `webServer` activos y ejecución siempre headed (`headless: false`).
-- Las suites focalizadas (form-list, builder, form-builder-v1, form-version-lifecycle) pasan: 28 passed + 1 smoke local omitido (requiere API activa).
+- Suite Playwright: 29 tests en 4 archivos (form-list, builder-workspace, form-builder-v1, form-version-lifecycle); `baseURL` y `webServer` activos y ejecución siempre headed (`headless: false`).
+- Última ejecución completa 2026-10-15: **28 passed + 1 skipped** (el smoke real opt-in `FORM_SCHEMA_LIVE_SMOKE=1` no se incluye por defecto).
+- Unitarios frontend (`pnpm test:unit`, vitest): **96/96** (2026-10-15).
 - Los 3 suites legacy de tabs (`question-*`, `section-*`, `section-form-double-submit`) fueron eliminados el 2026-10-10: apuntaban a una UI eliminada y fallaban siempre.
-- Suite backend: 83 tests (15 de integración SQL con bases temporales aisladas) pasando con `FORM_SCHEMA_TEST_SQL`.
+- Suite backend: 96 tests con SQL real (integración en bases temporales aisladas) pasando con `FORM_SCHEMA_TEST_SQL`, incluidos los tests de contrato HTTP y ciclo de vida.
 
 ### Seguridad de dependencias
 
@@ -534,6 +500,7 @@ Auditoría original (2026-09-19): 15 vulnerabilidades frontend, incluidas 9 alta
 
 **Re-auditoría y corrección 2026-10-11**: `pnpm audit` reportó 41 vulnerabilidades (2 críticas, 25 altas, 12 moderadas, 2 bajas) y tras la remediación quedó en **0**. Acciones: `react-router` → 7.18.4, `vite` → 6.4.4, `vitest` → 4.1.11 (mayor; cubre las críticas de `tinypool`) y fijación de transitivos vía `pnpm.overrides` (`brace-expansion`, `postcss`, `nanoid`, `browserslist`, `js-yaml`, `source-map-js`, `@babel/core`, `baseline-browser-mapping`). Verificación: build, lint 0/0 y 85/85 unit en vitest 4.1.11.
 - Backend: `Microsoft.OpenApi` transitivo con vulnerabilidad alta (GHSA-v5pm-xwqc-g5wc) — **resuelto el 2026-10-10** fijando `Microsoft.OpenApi 2.7.5`; `dotnet list package --vulnerable` reporta 0 vulnerabilidades.
+- 2026-10-15: retirados 4 paquetes frontend sin uso (`ulid`, `@dnd-kit/helpers`, `@dnd-kit/modifiers`, `@hookform/resolvers`); `pnpm audit` sigue reportando **0 vulnerabilidades**.
 - Hay paquetes transitivos backend marcados como deprecated (NU1903 se resolvió junto con el pin; revisar deprecated en la próxima actualización de dependencias).
 
 No se detectaron incompatibilidades explícitas de peer dependencies durante la restauración.
@@ -543,14 +510,14 @@ No se detectaron incompatibilidades explícitas de peer dependencies durante la 
 - Inicialización de base de datos reproducible disponible (`compose.yml` + `scripts/init-local-db.ps1`); aún sin CI que la ejecute.
 - No hay migraciones EF ni estrategia de evolución de base documentada (database-first con scripts SQL).
 - No hay CI.
-- Los tests frontend están desactualizados en parte (legacy de tabs).
+- Los tests frontend legacy de tabs fueron eliminados el 2026-10-10; la suite actual (form-list, builder-workspace, form-builder-v1, form-version-lifecycle) está al día con la UI y los contratos vigentes.
 - No hay manejo global de excepciones ni formato uniforme de errores.
 - No hay health checks.
 - No hay autenticación ni autorización.
 - La credencial SQL de desarrollo sigue versionada en `appsettings.Development.json`; `.env` y `.gitignore` ya protegen los secretos locales nuevos.
-- La configuración de frontend está hardcodeada (`https://localhost:7284`) y no externalizada por ambiente.
-- React Query está configurado, pero las consultas reales usan `fetch` y `useEffect` manuales.
-- Conviven mock, Zustand, estado local y datos remotos como fuentes de verdad.
+- La API URL del frontend se configura por `VITE_API_URL` (`src/config/env.ts`; default `http://localhost:5165`, obligatoria en producción).
+- React Query está configurado y es el mecanismo de datos de páginas y hooks (detalle, listado, lifecycle, builder); los `useEffect` restantes son de sincronización local, no de fetching.
+- Zustand se reserva para estado local (borrador del builder, selección); las fuentes de verdad remotas son la API y los datos de Query.
 - El cluster legacy sin uso (editor de tabs, stores, prototipos, mock) fue eliminado el 2026-10-11; quedan por revisar primitives y paquetes posiblemente sin uso (Fase 6, "Primitives y paquetes").
 - Hay bloques grandes de código comentado y logs de depuración.
 - La documentación transversal fue actualizada; varias decisiones técnicas siguen pendientes de OpenSpec.
@@ -679,26 +646,27 @@ Secuencia sugerida:
 - `web/src/features/forms/pages/FormListPage.tsx`: listado.
 - `web/src/features/forms/pages/CreateFormPage.tsx`: creación.
 - `web/src/features/forms/pages/FormDetailPage.tsx`: detalle y foco del trabajo reciente.
-- `web/src/features/forms/pages/FormBuilderPage.tsx`: builder/visor de versiones.
-- `web/src/features/forms/components/VersionModal.tsx`: selección de una versión Published como fuente para crear versiones.
+- `web/src/features/forms/pages/FormBuilderPage.tsx`: editor de versiones (`/builder`).
+- `web/src/features/forms/pages/FormVersionViewPage.tsx`: inspector read-only (`/view`).
+- `web/src/features/forms/components/VersionModal.tsx`: selección de una versión Published o Archived como fuente para crear versiones.
 - `web/src/features/forms/components/VersionCard.tsx`: presentación de versiones.
 - `web/src/features/forms/components/StatusBadge.tsx`: estados visuales.
 - `web/src/features/forms/hooks/useForms.ts`: carga del listado con React Query.
 - `web/playwright.config.ts`: configuración E2E (headed, baseURL `http://localhost:5173`).
 - `web/tests/`: suites focalizadas del flujo actual (listado, builder, ciclo de vida).
 
-## Dudas no resueltas
+## Dudas históricas (todas resueltas al 2026-10-15)
 
-Estas decisiones no están confirmadas por Git, OpenSpec ni una implementación consistente:
+Estas decisiones fueron resueltas por cambios posteriores y specs/archivos vigentes:
 
-- Si los contratos públicos distintos del estado de versión deben usar nombres en español o inglés. Los estados de versión ya usan `Draft`, `Published` y `Archived`.
-- Si las respuestas API deben ser directas o envolver datos en `{ data }`.
-- Si la ruta canónica de edición será `/edit` o `/builder`.
-- Si una versión nueva clona siempre la última o una versión seleccionada.
-- Si la futura API de clonado debe aplicar la misma regla Published-only que actualmente utiliza el modal.
-- Si publicar continúa dentro del alcance inmediato.
-- Si las dependencias entre campos deben referenciar `id` o `variable`.
-- Si las validaciones pertenecen al schema o a un documento separado.
-- Si `group` y `composed` forman parte del contrato final.
-- Si pnpm reemplazará oficialmente a npm.
-- Si SQL Server debe ejecutarse localmente o mediante un contenedor todavía no versionado.
+- ~~Si los contratos públicos distintos del estado de versión deben usar nombres en español o inglés.~~ Resuelto 2026-10-12: wire en inglés, textos visibles en español (spec `form-http-contract`).
+- ~~Si las respuestas API deben ser directas o envolver datos en `{ data }`.~~ Resuelto: respuestas directas en todos los endpoints.
+- ~~Si la ruta canónica de edición será `/edit` o `/builder`.~~ Resuelto: `/builder` editable y `/view` como inspector read-only.
+- ~~Si una versión nueva clona siempre la última o una versión seleccionada.~~ Resuelto: versión seleccionada mediante `VersionModal`.
+- ~~Si la futura API de clonado debe aplicar la misma regla Published-only que actualmente utiliza el modal.~~ Resuelto 2026-10-10: fuentes Published y Archived, Draft excluida.
+- ~~Si publicar continúa dentro del alcance inmediato.~~ Resuelto: publicación atómica implementada (`manage-form-version-lifecycle`).
+- ~~Si las dependencias entre campos deben referenciar `id` o `variable`.~~ Resuelto: `variable` (`dependency.field` referencia `$defs/variable` en el contrato v1).
+- ~~Si las validaciones pertenecen al schema o a un documento separado.~~ Resuelto: dentro de cada campo en el schema v1.
+- ~~Si `group` y `composed` forman parte del contrato final.~~ Resuelto: `group` sí (un nivel); `composed` no forma parte del contrato v1.
+- ~~Si pnpm reemplazará oficialmente a npm.~~ Resuelto 2026-10-10: pnpm oficial, único lockfile.
+- ~~Si SQL Server debe ejecutarse localmente o mediante un contenedor todavía no versionado.~~ Resuelto: `compose.yml` como estándar (2026-10-15).

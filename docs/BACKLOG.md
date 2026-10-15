@@ -1,6 +1,6 @@
 # Backlog Operativo
 
-Backlog derivado de las tareas priorizadas en la Fase 6. `TASK-001` y `TASK-002` están completadas; `TASK-008` fue superada por el change completado `manage-form-version-lifecycle` (ciclo de vida de versiones completo, archivado 2026-10-10). Las tareas restantes conservan su estado individual.
+Backlog derivado de las tareas priorizadas en la Fase 6. **Estado 2026-10-15:** completadas TASK-001, TASK-002, TASK-003 (archivado `specify-form-http-contract`), TASK-004, TASK-005, TASK-007 (suite E2E mínima) y TASK-008 (superada por `manage-form-version-lifecycle`, archivado 2026-10-10); TASK-006 cerrada en código el 2026-10-15 (salvo revisión de consumidores externos) y TASK-009 mayormente resuelta. Las tareas restantes conservan su estado individual.
 
 ## Iniciativa prioritaria: schema inglés v1
 
@@ -314,7 +314,7 @@ Notas:
 
 ### TASK-006 - Alinear el contrato básico de formularios
 
-Estado: Pendiente
+Estado: Completada en código (2026-10-15); queda como trámite la revisión de consumidores externos (fuera de este repositorio)
 
 Nota 2026-10-12: TASK-003 (`specify-form-http-contract`) quedó implementada y provee el target formal de la matriz contractual (respuesta directa, claves en inglés unificadas, ProblemDetails con `code`, UTC, `Location`). TASK-006 queda reducida a los residuos de alineación no cubiertos por ese cambio: `GetFormVersionById` (devuelve entidad EF sin DTO canónico), revisión de consumidores externos y nullability restante en rutas adyacentes.
 
@@ -384,7 +384,7 @@ Notas:
 
 ### TASK-007 - Recuperar una suite E2E mínima
 
-Estado: Pendiente
+Estado: Completada (infraestructura y casos mínimos activos; ver Nota)
 
 Prioridad: Media
 
@@ -439,10 +439,11 @@ OpenSpec: Pendiente
 Notas:
 - Tamaño estimado: mediano.
 - No incluye recuperar inmediatamente todos los casos antiguos de secciones y preguntas.
-- Confirmado por código: existen 15 tests, todos usan `http://localhost:5173` y navegan a la ruta antigua; `baseURL` y `webServer` están comentados.
+- Nota 2026-10-15: la tarea quedó resuelta — `playwright.config.ts` tiene `baseURL` y `webServer` activos (siempre headed); la suite mínima existe como `form-list.spec` (listado y creación), `form-builder-v1.spec`/`builder-workspace.spec` (builder) y `form-version-lifecycle.spec` (detalle y ciclo), con fixtures interceptados por `page.route()` y smoke real opt-in (`FORM_SCHEMA_LIVE_SMOKE=1`); los 15 tests legacy fueron eliminados (decisión explícita, 2026-10-10) y la topología (UI interceptada vs API/SQL real) está documentada en `docs/PROJECT_STATUS.md`.
+- Confirmado por código: existían 15 tests, todos usaban `http://localhost:5173` y navegaban a la ruta antigua; `baseURL` y `webServer` estaban comentados (histórico).
 - Confirmado por código: solo Chromium está habilitado y no existe script `test:e2e`.
 - Confirmado por OpenSpec: no existe capability E2E; `version-status-contract` solo condiciona los estados usados en el detalle.
-- Decisión humana pendiente: E2E real frente a UI interceptada, lifecycle de API/SQL, aislamiento de datos y disposición de la suite legacy.
+- Decisión humana pendiente: E2E real frente a UI interceptada, lifecycle de API/SQL, aislamiento de datos y disposición de la suite legacy. (Histórica; resuelta con la topología mixta descrita arriba.)
 - Candidata a descomposición en topología/datos, configuración, fixtures, tres casos independientes y clasificación de tests legacy.
 
 ### TASK-008 - Implementar la creación de versiones
@@ -508,14 +509,14 @@ OpenSpec: Pendiente
 Notas:
 - Tamaño estimado: grande sin descomposición.
 - Confirmado por código: la entidad contiene schema, estado, número y derivación; la base solo impone unicidad `(FormId, VersionNumber)`.
-- Confirmado por código: el frontend espera `POST /forms/{formId}/versions` y `{ data }`, pero ese contrato aún no existe en backend y debe alinearse con TASK-006.
-- Confirmado por OpenSpec: `version-status-contract` exige que el modal muestre únicamente fuentes Published; no define clonado, numeración ni Draft único.
+- Confirmado por código (histórico, corregido 2026-10-10/12): el frontend esperaba `POST /forms/{formId}/versions` con `{ data }`; el endpoint existe desde `manage-form-version-lifecycle` con respuesta directa (sin envoltorio) y el frontend fue migrado a `requestJson` con IDs en URL.
+- Confirmado por OpenSpec (histórico): `version-status-contract` exigía que el modal muestre únicamente fuentes Published; el delta de `manage-form-version-lifecycle` (archivado 2026-10-10) lo amplió a Published y Archived con Draft excluida.
 - Decisiones humanas bloqueantes: fuente, numeración, enforcement de Draft, concurrencia, contrato de errores, ubicación del control y ruta editable.
 - Candidata a descomposición en decisiones/spec, tests backend, vertical slice, garantía de concurrencia, cliente frontend, integración UI/navegación y E2E.
 
 ### TASK-009 - Separar visualización y edición de versiones
 
-Estado: Pendiente
+Estado: Pendiente (mayormente resuelto; ver Nota 2026-10-15)
 
 Prioridad: Baja
 
@@ -573,8 +574,9 @@ OpenSpec: Pendiente
 
 Notas:
 - Tamaño estimado: grande sin descomposición.
+- Nota 2026-10-15: la separación de modos está implementada — `/builder` (`FormBuilderPage`) y `/view` (`FormVersionViewPage`) son páginas y rutas distintas; el builder resuelve la versión desde el servidor y aplica `editable = !readOnly && status === 'Draft'` (no-Draft por URL ve "Solo lectura" sin controles de escritura), el backend vuelve a exigir Draft al guardar (`PUT .../schema` Draft-only) y el selector del detalle enruta "Ver estructura" frente a editar según estado. `FormPage`, `Table.tsx`, `TableRowActions.tsx` y `store/formStructure.ts` ya no existen (eliminados 2026-10-11), por lo que el motivo/módulos históricos de abajo están superados. Quedan: matices de protección por URL documentados en `docs/PROJECT_STATUS.md` y su cobertura E2E.
 - Debe priorizar compartir componentes y controlar explícitamente el modo, no duplicar toda la pantalla.
-- Confirmado por código: `/view` y `/builder` usan `FormPage`; `FormPage` no recibe ni deriva un modo y siempre monta superficies editables.
+- Confirmado por código (histórico): `/view` y `/builder` usaban `FormPage`; `FormPage` no recibía ni derivaba un modo y siempre montaba superficies editables.
 - Confirmado por OpenSpec: los estados están definidos, pero no existen requisitos formales de rutas, permisos o read-only.
 - Decisiones humanas bloqueantes: ruta editable, respuesta ante estado/ruta incompatible, comportamiento de Draft en `/view`, controles visibles y alcance de la defensa backend.
 - Inferencia: TASK-008 es dependencia de integración, no necesariamente de la parametrización inicial del modo.
@@ -582,16 +584,16 @@ Notas:
 
 ## Orden recomendado
 
-> Estado 2026-10-10 (tarde): TASK-001, TASK-002, TASK-004, TASK-005 y TASK-008 completadas y archivadas; suites Playwright legacy de tabs eliminados (29 tests/4 archivos en verde). El orden vigente de trabajo pendiente es: `render-form-schema-v1` (item 4 de la iniciativa) → re-auditoría de dependencias frontend → TASK-003.
+> Estado 2026-10-15: TASK-001, TASK-002, TASK-003, TASK-004, TASK-005, TASK-007 y TASK-008 completadas y archivadas (9 changes archivados, 0 activos); TASK-006 cerrada en código (residuos `GetFormVersionById`/nullability/UTC-Z el 2026-10-15); TASK-009 mayormente resuelta. El orden vigente de trabajo pendiente es: `render-form-schema-v1` (item 4 de la iniciativa) → higiene restante de primitives/tests (ver `docs/VERSION_LIFECYCLE_AND_CLEANUP_PLAN.md`).
 
 1. `TASK-002`: recuperar primero una señal de lint útil. **(Completada)**
 2. `TASK-004`: consolidar gestor y runtimes para que los quality gates sean reproducibles. **(Completada, 2026-10-10)**
-3. `TASK-003`: aprobar en OpenSpec el contrato HTTP básico.
+3. `TASK-003`: aprobar en OpenSpec el contrato HTTP básico. **(Completada, archivada 2026-10-15)**
 4. `TASK-005`: hacer reproducible SQL Server sin tocar el volumen local existente. **(Completada, 2026-10-10)**
-5. `TASK-006`: implementar el contrato básico ya aprobado y validarlo contra un entorno desechable. **(Mayormente resuelto)**
-6. `TASK-007`: recuperar la suite mínima sobre listado, creación y detalle. **(Mayormente resuelto; suites legacy de tabs eliminados 2026-10-10)**
+5. `TASK-006`: implementar el contrato básico ya aprobado y validarlo contra un entorno desechable. **(Completada en código, 2026-10-15; salvo consumidores externos)**
+6. `TASK-007`: recuperar la suite mínima sobre listado, creación y detalle. **(Completada; suites legacy de tabs eliminados 2026-10-10)**
 7. `TASK-008`: especificar y luego implementar creación de versiones. **(Completada vía `manage-form-version-lifecycle`)**
-8. `TASK-009`: separar edición y visualización sobre contratos de versión y estructura estables. **(Mayormente resuelto)**
+8. `TASK-009`: separar edición y visualización sobre contratos de versión y estructura estables. **(Mayormente resuelto; quedan matices por URL y E2E)**
 
 Dependencias principales confirmadas:
 
@@ -600,6 +602,6 @@ Dependencias principales confirmadas:
 - TASK-005 habilita la validación SQL integrada de TASK-006, TASK-007 y TASK-008.
 - TASK-006 estabiliza DTOs y errores antes de TASK-007, TASK-008 y TASK-009.
 - TASK-008 habilita el recorrido integrado de creación de Draft que TASK-009 debe enrutar al modo editable.
-- TASK-009 también depende de lectura de estructura y de la futura protección backend de escritura; esas capacidades aún no tienen una tarea de implementación separada en este backlog.
+- TASK-009 también dependía de lectura de estructura y de protección backend de escritura; ambas capacidades existen desde 2026-10-10 (`GET/PUT .../schema` Draft-only), por lo que la tarea no espera esa infraestructura.
 
-Candidatas a descomposición antes de implementación: TASK-004, TASK-005, TASK-006, TASK-007, TASK-008 y TASK-009. Permanecen en estado `Pendiente` porque todavía no se han creado ni aprobado sus tareas hijas o specs OpenSpec.
+Candidatas a descomposición antes de implementación: TASK-006 y TASK-009 (las únicas que no están completadas). TASK-004, TASK-005, TASK-007 y TASK-008 quedaron completadas; TASK-006 y TASK-009 no requieren tareas hijas nuevas salvo que la revisión de consumidores externos o los matices de URL/E2E resulten en trabajo acotado.
