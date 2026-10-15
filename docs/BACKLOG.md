@@ -163,7 +163,7 @@ Criterios generales:
 - `openspec status --change <nombre>` indica que todos los artefactos requeridos para apply están completos.
 - `openspec validate --all` finaliza correctamente.
 
-OpenSpec: `openspec/changes/specify-form-http-contract/` (implementado 2026-10-12)
+OpenSpec: `openspec/changes/archive/2026-10-15-specify-form-http-contract/` (implementado 2026-10-12, archivado 2026-10-15; spec principal `openspec/specs/form-http-contract/`)
 
 Notas:
 - Tamaño estimado: pequeño.

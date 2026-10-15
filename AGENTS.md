@@ -105,12 +105,14 @@ Skills are in `.agent/skills/`.
 
 ## Base de datos local
 
-La base de datos de desarrollo utiliza SQL Server en Docker.
+La base de datos de desarrollo es el SQL Server del stack Compose (servicio `sqlserver`):
 
-Contenedor:
+```powershell
+cp .env.example .env   # definir MSSQL_SA_PASSWORD
+docker compose --env-file .env up -d
+```
 
-`sqlserver22`
-
-Cuando una tarea requiera inspeccionar o validar la base de datos local, utilizar este contenedor.
-
-No realizar cambios destructivos ni estructurales en la base de datos salvo instrucción explícita.
+- El puerto host es `MSSQL_PORT` de `.env` (14331 en el entorno local actual); `db-init` crea `form_structure` y aplica `NewFile1.sql` → migraciones 001 → 002 automáticamente.
+- Para inspeccionar o validar la base local, usar siempre esta instancia. `sqlserver22` (puerto 1433) es un contenedor manual legacy: no es necesario para ninguna tarea y no debe requerirse.
+- Tests de integración backend: configurar `FORM_SCHEMA_TEST_SQL` contra la instancia Compose (ejemplo en `api/FormManagementApi/Database/Migrations/README.md`). Las pruebas crean y dropan sus propias bases desechables `form_schema_tests_*`; eso está permitido.
+- No borrar, resetear ni migrar `form_structure` ni tocar volúmenes salvo instrucción explícita.

@@ -45,7 +45,7 @@ docker compose up --build --watch
 
 Tras cambiar código de la API: `docker compose up --build api`.
 
-El Compose publica SQL Server en el puerto host `14331` por defecto para no chocar con un contenedor `sqlserver22` preexistente en 1433; la API habla con SQL por la red interna (`sqlserver:1433`), así que el puerto del host solo afecta a herramientas externas. Si no usas `sqlserver22`, puedes fijar `MSSQL_PORT=1433` en `.env`.
+El Compose publica SQL Server en el puerto host `MSSQL_PORT` de `.env` (1433 por defecto según `.env.example`; el entorno local actual usa `14331` para coexistir con un contenedor `sqlserver22` legacy en 1433). La API habla con SQL por la red interna (`sqlserver:1433`), así que el puerto del host solo afecta a herramientas externas y tests.
 
 ### Sin Docker (manual)
 
@@ -64,7 +64,7 @@ cp .env.example .env   # definir MSSQL_SA_PASSWORD
 docker compose --env-file .env up -d sqlserver db-init
 ```
 
-La opción manual equivalente (contenedor propio `sqlserver22` u otro) y el detalle de migraciones están en [`api/FormManagementApi/Database/Migrations/README.md`](api/FormManagementApi/Database/Migrations/README.md). No elimines ni reutilices destructivamente volúmenes preexistentes; consulta [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
+El flujo estándar es el stack Compose de arriba; la opción manual equivalente (contenedor propio `sqlserver22` u otro) y el detalle de migraciones están en [`api/FormManagementApi/Database/Migrations/README.md`](api/FormManagementApi/Database/Migrations/README.md). `sqlserver22` es legacy y no se necesita para ninguna tarea. No elimines ni reutilices destructivamente volúmenes preexistentes; consulta [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
 
 Backend:
 
@@ -74,7 +74,7 @@ dotnet restore "FormManagementApi.sln"
 dotnet run --project "FormManagementApi/FormManagementApi.csproj" --launch-profile https
 ```
 
-La API espera SQL Server en `localhost:1433` (ajustable con `ConnectionStrings__DockerConnection`).
+La API local (`dotnet run`) usa `appsettings.Development.json`, configurado por defecto contra la instancia Compose (`localhost,14331` con las credenciales de `.env.example`). Si tu `.env` usa otro `MSSQL_PORT` o contraseña, sobreescribe con la variable `ConnectionStrings__DockerConnection`.
 
 ## Verificación
 
@@ -94,4 +94,4 @@ Tests de contrato backend desde la raíz:
 dotnet test api/FormManagementApi.Tests/FormManagementApi.Tests.csproj
 ```
 
-Para pruebas SQL/HTTP, configurar `FORM_SCHEMA_TEST_SQL` según [las instrucciones de migración](api/FormManagementApi/Database/Migrations/README.md); sin esa variable las pruebas SQL se omiten explícitamente. El backend local usa la migración v1 aplicada en `sqlserver22` y expone `GET/PUT /forms/{formId}/versions/{versionId}/schema`.
+Para pruebas SQL/HTTP, configurar `FORM_SCHEMA_TEST_SQL` contra la instancia Compose según [las instrucciones de migración](api/FormManagementApi/Database/Migrations/README.md); sin esa variable las pruebas SQL se omiten explícitamente. El backend local usa la migración v1 aplicada por `db-init` en la base `form_structure` del stack Compose y expone `GET/PUT /forms/{formId}/versions/{versionId}/schema`.

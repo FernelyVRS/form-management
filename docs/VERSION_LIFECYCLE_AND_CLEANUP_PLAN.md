@@ -40,7 +40,7 @@ El renderer dinámico de respuestas es un trabajo separado y no forma parte de e
 
 ### Última auditoría SQL, solo lectura
 
-- Contenedor: `sqlserver22`.
+- Instancia: contenedor manual legacy `sqlserver22` (esta auditoría es histórica; desde 2026-10-15 la instancia estándar es la del stack Compose, ver `AGENTS.md`).
 - Base de desarrollo: `form_structure`.
 - 1 formulario y 1 versión Draft; ninguna Published.
 - No se detectaron Drafts o Published duplicadas.
@@ -107,7 +107,7 @@ Los campos dentro de grupos cuentan para el mínimo de publicación. No se exigi
 - Respetar trabajo ajeno y archivos untracked. No hacer reset/clean masivo ni restaurar/eliminar lockfiles ajenos.
 - Usar Carter/Minimal APIs con un slice por endpoint; no introducir Controllers.
 - Mantener el enfoque database-first con migraciones SQL explícitas, no auto-migración al iniciar la API.
-- Usar `sqlserver22` para auditoría local y bases aisladas para pruebas SQL de escritura.
+- Usar la instancia SQL del stack Compose (puerto `MSSQL_PORT` de `.env`) para auditoría local y bases aisladas de pruebas SQL de escritura; `sqlserver22` es legacy y no debe requerirse (unificación 2026-10-15).
 - No reinicializar `form_structure`, su volumen o la base `model` para ejecutar tests.
 - No hacer commit/push ni archivados no revisados sin la instrucción correspondiente.
 
@@ -288,7 +288,7 @@ Nuevo slice `ArchiveFormVersion`.
 - [ ] Restricciones SQL, auditoría de conflictos y repetición de migración.
 - [ ] Timestamps/tokens refrescados y rechazos sin mutación.
 
-Usar las bases desechables de `SqlSchemaTestHost` en sqlserver22 y `FORM_SCHEMA_TEST_SQL`. El entorno model contiene tablas heredables: recrear solo las copias de cada base temporal, no model ni form_structure.
+Usar las bases desechables de `SqlSchemaTestHost` contra la instancia Compose con `FORM_SCHEMA_TEST_SQL`. El entorno model contiene tablas heredables: recrear solo las copias de cada base temporal, no model ni form_structure.
 
 ### Frontend
 

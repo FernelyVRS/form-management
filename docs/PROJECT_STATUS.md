@@ -24,7 +24,7 @@ Cierre de TASK-004 y TASK-005 vía el change archivado `reproducible-local-envir
 
 ### Actualización: contrato HTTP de formularios (2026-10-12)
 
-Cambio OpenSpec `specify-form-http-contract` implementado y verificado (14 tareas). Los tres endpoints básicos quedan alineados a la matriz aprobada, unificando el wire format con los endpoints del ciclo de vida. **Cambio breaking en el wire:** las respuestas ahora usan claves en inglés; el modelo interno del frontend permanece en español y la traducción ocurre solo en la frontera Zod (`formsApi.ts`, `useFormLifecycle.ts`, `services/form.ts`).
+Cambio OpenSpec `specify-form-http-contract` implementado y verificado (14 tareas); archivado el 2026-10-15 como `openspec/changes/archive/2026-10-15-specify-form-http-contract` con spec principal `form-http-contract` sincronizada. Los tres endpoints básicos quedan alineados a la matriz aprobada, unificando el wire format con los endpoints del ciclo de vida. **Cambio breaking en el wire:** las respuestas ahora usan claves en inglés; el modelo interno del frontend permanece en español y la traducción ocurre solo en la frontera Zod (`formsApi.ts`, `useFormLifecycle.ts`, `services/form.ts`).
 
 - `GET /forms` → `[{ id, name, description, createdAt, updatedAt, totalVersions, latestVersion, latestVersionId }]`, proyección de última versión null-safe (sin `First()` que lanza).
 - `POST /forms` → request `{ name, description? }` con validación manual (name faltante/vacío/no-string, description no-string o JSON malformado → `400 invalid_request` sin efectos secundarios); respuesta `201 { formId, versionId, number }` + `Location: /forms/{formId}`; timestamps UTC (`DateTime.UtcNow`).
@@ -240,20 +240,22 @@ agent-os/
 
 ### Base de datos
 
-La configuración de desarrollo espera:
+La configuración de desarrollo apunta a la instancia del stack Compose (unificada 2026-10-15):
 
 ```text
-Server=localhost,1433
+Server=localhost,14331    # puerto MSSQL_PORT de .env (14331 en el entorno local actual)
 Database=form_structure
 ```
 
-Opción reproducible (recomendada, no toca el volumen del contenedor preexistente `sqlvolume`):
+Opción estándar y reproducible (la que usan la API, db-init y los tests de integración):
 
 ```powershell
-cp .env.example .env        # definir MSSQL_SA_PASSWORD
+cp .env.example .env        # definir MSSQL_SA_PASSWORD (y MSSQL_PORT si 1433 está ocupado)
 docker compose --env-file .env up -d
-.\scripts\init-local-db.ps1 # crea form_structure y aplica NewFile1 → 001 → 002
+# db-init crea form_structure y aplica NewFile1 → 001 → 002 automáticamente
 ```
+
+`sqlserver22` (puerto 1433, volumen `sqlvolume`) es un contenedor manual legacy: no se necesita para ninguna tarea, ha caído repetidamente (exit 137 el 2026-10-15) y la documentación/validación ya no depende de él. Ver `AGENTS.md` para las instrucciones dirigentes.
 
 El script espera readiness real, omite la baseline si ya existe, aplica migraciones con `sqlcmd -b` (forzando `QUOTED_IDENTIFIER ON`) y verifica tablas, índices, checks, FKs, columnas de provenance y RowVersion. Los rehearsales deben usar `-p <nombre>` y `MSSQL_PORT` para no colisionar con el stack por defecto.
 
@@ -462,19 +464,19 @@ TODO explícitos en código:
 
 ## Estado de OpenSpec
 
-Estado verificado con la CLI el 2026-10-10:
+Estado verificado con la CLI el 2026-10-15:
 
 ```text
 Workflow: spec-driven
 Cambios activos: 0
-Cambios archivados: 8
-Specs principales: 8
-Último change: reproducible-local-environment (archivado 2026-10-10)
+Cambios archivados: 9
+Specs principales: 9
+Último change: specify-form-http-contract (archivado 2026-10-15)
 ```
 
-Specs principales vigentes en `openspec/specs/`: `version-status-contract`, `form-list-retrieval`, `form-version-lifecycle`, `frontend-lint-quality-gate`, `form-schema-contract`, `form-version-schema-persistence`, `form-schema-builder` y `local-environment-bootstrap`.
+Specs principales vigentes en `openspec/specs/`: `version-status-contract`, `form-list-retrieval`, `form-version-lifecycle`, `frontend-lint-quality-gate`, `form-schema-contract`, `form-version-schema-persistence`, `form-schema-builder`, `local-environment-bootstrap` y `form-http-contract`.
 
-Los 8 changes completados se conservan en `openspec/changes/archive/` (`2026-09-20-fix-version-status-contract`, `2026-09-21-modernize-form-list-data-flow` y los seis de 2026-10-10). `openspec list` no devuelve cambios activos: `No active changes found.`
+Los 9 changes completados se conservan en `openspec/changes/archive/` (`2026-09-20-fix-version-status-contract`, `2026-09-21-modernize-form-list-data-flow`, los seis de 2026-10-10 y `2026-10-15-specify-form-http-contract`). `openspec list` no devuelve cambios activos: `No active changes found.`
 
 Los documentos de `web/docs/specs/` son especificaciones manuales y no artefactos reconocidos por OpenSpec. `2026-02-form-detail-module.md` está marcado `Approved`, pero su implementación es parcial y esa aprobación no pertenece al workflow formal de OpenSpec.
 
@@ -491,10 +493,9 @@ Los documentos de `web/docs/specs/` son especificaciones manuales y no artefacto
 ### Ejecución
 
 - La API inicia y Scalar responde, pero `GET /forms` devuelve 500 si SQL Server no está disponible.
-- Docker Engine 29.4.2 está disponible y existe el contenedor local `sqlserver22` con SQL Server 2022 Developer, binding `1433:1433` y volumen `sqlvolume`.
-- Al momento de la inspección 2026-09-20, `sqlserver22` estaba detenido con exit code 255 y no había listener en `localhost:1433`.
-- No se inició el contenedor ni se consultaron datos o metadata interna; el contenido y schema real de `form_structure` no están confirmados.
-- No existe Compose para recrear el contenedor y el volumen existente no debe usarse en pruebas destructivas.
+- El SQL Server estándar es el servicio `sqlserver` del stack Compose (puerto host `MSSQL_PORT` = 14331 en el entorno actual, volumen `form-management_sql-data`); `db-init` espera su readiness y es idempotente.
+- El contenedor manual `sqlserver22` (puerto 1433, volumen `sqlvolume`) es legacy: existía previo al Compose, ha caído repetidamente (exit 255 en 2026-09-20, exit 137 en 2026-10-15) y ya no es referenciado por la documentación operativa ni por los tests (unificación 2026-10-15). Si corre, solo ocupa el 1433; su volumen no debe usarse en pruebas destructivas.
+- Si el motor de Docker Desktop cae, todo el stack (sqlserver, api, web) queda inaccesible: reiniciar Docker Desktop y `docker compose --env-file .env up -d` lo restaura con los datos del volumen.
 - La confianza del certificado HTTPS no fue confirmada, aunque existe un certificado válido.
 
 ### Contratos e integración
