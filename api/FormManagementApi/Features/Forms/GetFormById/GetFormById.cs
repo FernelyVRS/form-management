@@ -73,16 +73,16 @@ public class GetFormById
             form.Id,
             form.Name,
             form.Description,
-            form.CreatedAt,
-            form.UpdatedAt,
+            DateTime.SpecifyKind(form.CreatedAt, DateTimeKind.Utc),
+            form.UpdatedAt is { } updatedAt ? DateTime.SpecifyKind(updatedAt, DateTimeKind.Utc) : null,
             form.Versions.Select(v =>
                 new Version(
                     v.Id,
                     v.VersionNumber,
                     v.Status,
                     Convert.ToBase64String(v.RowVersion),
-                    v.CreatedAt,
-                    v.UpdatedAt))
+                    DateTime.SpecifyKind(v.CreatedAt, DateTimeKind.Utc),
+                    v.UpdatedAt is { } versionUpdatedAt ? DateTime.SpecifyKind(versionUpdatedAt, DateTimeKind.Utc) : null))
             .ToList()));
     }
 }

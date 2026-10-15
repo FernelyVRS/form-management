@@ -318,6 +318,8 @@ Estado: Pendiente
 
 Nota 2026-10-12: TASK-003 (`specify-form-http-contract`) quedó implementada y provee el target formal de la matriz contractual (respuesta directa, claves en inglés unificadas, ProblemDetails con `code`, UTC, `Location`). TASK-006 queda reducida a los residuos de alineación no cubiertos por ese cambio: `GetFormVersionById` (devuelve entidad EF sin DTO canónico), revisión de consumidores externos y nullability restante en rutas adyacentes.
 
+Nota 2026-10-15: residuos de código cerrados — `GetFormVersionById` ahora devuelve el DTO canónico en ruta plural con `404 version_not_found`, y las tres rutas GET de formularios emiten timestamps UTC-Z (`SpecifyKind`). Sin consumidores de la ruta singular en el repo. Lo único pendiente de TASK-006 es la revisión de consumidores externos (fuera de este repositorio) cuando existan.
+
 Prioridad: Media
 
 Origen: Fase 6

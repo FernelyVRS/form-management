@@ -330,14 +330,14 @@ Ejecutado el 2026-10-11 (verificación de imports desde el router previa a cada 
 - [x] Retirar `types/fields.ts`, `types/seccion.ts` y barrel `types/index.ts` cuando no tengan consumidores.
 - [ ] Mantener los tipos activos de metadata/lifecycle; no borrar `types/form.ts` en bloque.
 - [x] Evaluar el re-export de compatibilidad `pages/FormPage.tsx`.
-- [ ] Comprobar consumidores externos antes de retirar la ruta backend singular `/version/`.
+- [x] Comprobar consumidores externos antes de retirar la ruta backend singular `/version/`. **(2026-10-15: sin consumidores en el repo; la ruta singular fue retirada y `GET /forms/{formId}/versions/{versionId}` expone el DTO canónico con 404 `version_not_found`.)**
 - [ ] Revisar comentarios/prototipos backend con cuidado del diff de usuario.
 
 ### Primitives y paquetes
 
 - [ ] Prunar primitives solo después de implementar lifecycle; sus menús pueden reutilizar dropdown-menu/table.
 - [ ] Mantener componentes compartidos que sí estén en el grafo activo, incluido separator vía field.
-- [ ] Revisar con imports/`pnpm why` posibles paquetes legacy: ulid, dnd-kit helpers/modifiers, resolvers o Radix sin uso.
+- [x] Revisar con imports/`pnpm why` posibles paquetes legacy: ulid, dnd-kit helpers/modifiers, resolvers o Radix sin uso. **(2026-10-15: retirados `ulid`, `@dnd-kit/helpers`, `@dnd-kit/modifiers` y `@hookform/resolvers` por 0 importadores; todos los `@radix-ui/react-*`, `radix-ui`, zustand y ajv siguen en uso.)**
 - [ ] No retirar dnd-kit/react, RHF, Query, Zustand, Zod ni dependencias de primitives activos.
 - [ ] Actualizar package.json y pnpm-lock.yaml coordinadamente, sin cambios masivos de versiones.
 

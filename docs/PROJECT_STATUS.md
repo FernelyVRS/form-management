@@ -4,6 +4,15 @@
 
 ## Descripción del proyecto
 
+### Actualización: residuos TASK-006, paquetes y calidad de build (2026-10-15)
+
+- Archivado del change `specify-form-http-contract` committeado y pusheado (`0209fce`): spec principal, docs y unificación Compose como DB local.
+- `GetFormVersionById` alineado al contrato (cierra el residuo TASK-006): ruta plural `GET /forms/{formId}/versions/{versionId}` (la ruta singular `/version/` no tenía consumidores en el repo y queda retirada), DTO canónico `{ formId, versionId, number, status, rowVersion, createdAt, updatedAt, derivedFromVersionId }`, `404` con ProblemDetails `code: version_not_found` vía `ApiProblems`, sin entidad EF en el wire.
+- Timestamps UTC terminados en `Z` en las tres rutas GET de formularios: las lecturas de datetime2 salían con Kind `Unspecified`; ahora `DateTime.SpecifyKind(..., Utc)` en las proyecciones de `GetForms`, `GetFormById` y `GetFormVersionById` (escenario UTC de la spec `form-http-contract`, cubierto por tests).
+- Paquetes sin uso retirados de `web/package.json` + lockfile: `ulid`, `@dnd-kit/helpers`, `@dnd-kit/modifiers`, `@hookform/resolvers` (0 importadores; `pnpm audit` sigue en 0 vulnerabilidades). Radix individual, `radix-ui`, zustand, ajv y el resto de la lista siguen en uso.
+- ESLint: `settings.react.version` `"18"` → `"detect"` (proyecto en React 19). Vite: `build.rollupOptions.output.manualChunks` con matchers por paquete exacto → sin warning de chunk >500 kB (index 99 kB; mayor chunk `vendor-react` 194 kB) y sin ciclos de chunk.
+- Verificación: backend **96/96** con SQL real (2 tests nuevos del endpoint de versión + asserts `Z`), frontend **96/96** unitarios, `pnpm build` y `pnpm lint` (0/0) verdes, `dotnet build` 0 errores, API Docker reconstruida.
+
 ### Actualización: entorno reproducible (2026-10-10)
 
 Cierre de TASK-004 y TASK-005 vía el change archivado `reproducible-local-environment`:
@@ -375,7 +384,7 @@ Las siguientes piezas existen y funcionan al menos de forma aislada. Esto no imp
 - Configuración EF Core y conexión a SQL Server.
 - `GET /forms`.
 - `GET /forms/{id}`.
-- `GET /forms/{formId}/version/{id}`.
+- `GET /forms/{formId}/versions/{versionId}`.
 - `POST /forms`, que crea un formulario y su primera versión Draft.
 - OpenAPI y Scalar en Development.
 
@@ -453,7 +462,7 @@ Prioridad alta:
 1. ~~Formalizar en OpenSpec el contrato HTTP básico de formularios (TASK-003)~~ — completado 2026-10-12 con el change `specify-form-http-contract` (aplicado y verificado; ver sección "Actualización: contrato HTTP de formularios").
 2. Implementar el renderer dinámico `render-form-schema-v1` (backlog item 4): la última pieza funcional del ciclo definir→editar→versionar→publicar→ver.
 
-Cerrado o mayormente cerrado desde el 2026-09-20: TASK-001 (build), TASK-002 (lint, archivado), TASK-004 y TASK-005 (entorno reproducible, archivados 2026-10-10), TASK-003 (spec formal del contrato HTTP, completado 2026-10-12), TASK-006 (contrato básico: respuesta directa y ciclo de vida; residuos acotados tras TASK-003: `GetFormVersionById` y nullability restante), TASK-007 (suites legacy de tabs eliminados 2026-10-10), TASK-008 (creación/clonado/publicación/archivo de versiones, era `manage-form-version-lifecycle`), TASK-009 (mayormente: /view y no-Draft son read-only; quedan matices de protección por URL).
+Cerrado o mayormente cerrado desde el 2026-09-20: TASK-001 (build), TASK-002 (lint, archivado), TASK-004 y TASK-005 (entorno reproducible, archivados 2026-10-10), TASK-003 (spec formal del contrato HTTP, completado 2026-10-12), TASK-006 (contrato básico: respuesta directa y ciclo de vida; sus residuos `GetFormVersionById` y nullability restante quedaron cerrados 2026-10-15), TASK-007 (suites legacy de tabs eliminados 2026-10-10), TASK-008 (creación/clonado/publicación/archivo de versiones, era `manage-form-version-lifecycle`), TASK-009 (mayormente: /view y no-Draft son read-only; quedan matices de protección por URL).
 
 Trabajo posterior sin tarea acotada: renderer de respuestas, persistencia de respuestas, listas de entidades y reglas complejas, contrato de integración con el sistema consumidor, CI, health checks y autenticación.
 
@@ -485,10 +494,10 @@ Los documentos de `web/docs/specs/` son especificaciones manuales y no artefacto
 ### Compilación y calidad
 
 - `pnpm build` está verde desde el 2026-09-20; la comparación obsoleta `"publicada"` fue reemplazada por `Published`.
-- Vite advierte que el chunk principal minificado supera 500 kB; no bloquea el build.
+- ~~Vite advierte que el chunk principal minificado supera 500 kB.~~ Resuelto 2026-10-15: `manualChunks` por vendor (index 99 kB, mayor chunk 194 kB), sin warnings de build.
 - `pnpm lint` finaliza con **0 errores y 0 warnings** desde el 2026-10-10; los warnings diferidos de hooks y React Refresh fueron corregidos o permitidos de forma canónica (shadcn) y `dist/` sigue excluido.
 - `dotnet build` finaliza con **0 warnings y 0 errors** desde el 2026-10-10 (ASPDEPR002 retirado, Microsoft.OpenApi fijado en 2.7.5 sin vulnerabilidades transitivas).
-- ESLint declara React 18, mientras el proyecto usa React 19; no genera diagnósticos, pero debe corregirse como parte de TASK-004.
+- ~~ESLint declara React 18, mientras el proyecto usa React 19.~~ Resuelto 2026-10-15: `settings.react.version: "detect"` en `web/eslint.config.js`.
 
 ### Ejecución
 
@@ -504,7 +513,7 @@ Los documentos de `web/docs/specs/` son especificaciones manuales y no artefacto
 - ~~`POST /forms` devuelve una forma distinta a la esperada por el frontend.~~ Resuelto 2026-10-12: request `{ name, description? }`, respuesta `201 { formId, versionId, number }` + `Location`.
 - ~~El backend expone `numeroVersion`; el frontend espera `numero`.~~ Resuelto 2026-10-12 (breaking wire): el wire usa `number`; el frontend mapea a `numero` en la frontera Zod.
 - ~~Los GET por ID devuelven `200` con `null` en vez de `404`.~~ Resuelto 2026-10-12: `404` con ProblemDetails `code: form_not_found`.
-- `GetFormVersionById` documenta un DTO, pero devuelve una entidad EF. (Residual de TASK-006.)
+- ~~`GetFormVersionById` documenta un DTO, pero devuelve una entidad EF.~~ Resuelto 2026-10-15: DTO canónico en inglés, ruta plural, `404 version_not_found` y timestamps UTC-Z (residual TASK-006).
 - `SchemaJson` se almacena sin validación estructural. (Supersedido por la validación v1 de persistencia; ver `form-version-schema-persistence`.)
 
 ### Bugs funcionales conocidos

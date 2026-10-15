@@ -42,6 +42,7 @@ public sealed class FormHttpContractTests
         Assert.Equal(version.FormId, item["id"]!.GetValue<Guid>());
         Assert.Equal("Isolated schema test", item["name"]!.GetValue<string>());
         Assert.Null(item["description"]);
+        Assert.EndsWith("Z", item["createdAt"]!.GetValue<string>());
         Assert.Equal(2, item["totalVersions"]!.GetValue<int>());
         Assert.Equal(2, item["latestVersion"]!.GetValue<int>());
         Assert.Equal(latest.Id, item["latestVersionId"]!.GetValue<Guid>());
@@ -131,6 +132,7 @@ public sealed class FormHttpContractTests
         Assert.Equal(v1.FormId, body["id"]!.GetValue<Guid>());
         Assert.Equal("Isolated schema test", body["name"]!.GetValue<string>());
         Assert.Null(body["description"]);
+        Assert.EndsWith("Z", body["createdAt"]!.GetValue<string>());
         await AssertNoLegacyKeys(body, "nombre", "descripcion", "versiones");
 
         var versions = body["versions"]!.AsArray();
@@ -153,5 +155,42 @@ public sealed class FormHttpContractTests
 
         var response = await client.GetAsync($"/forms/{Guid.NewGuid()}");
         await AssertProblem(response, HttpStatusCode.NotFound, "form_not_found");
+    }
+
+    [SqlFact]
+    public async Task GetVersionById_ReturnsCanonicalMetadataWithUtcTimestamps()
+    {
+        await using var host = await SqlSchemaTestHost.Create();
+        var v1 = await host.Seed();
+        var v2 = await host.SeedVersion(v1.FormId, 2, "Published", sourceId: v1.Id);
+
+        using var client = host.Client;
+        var response = await client.GetAsync($"/forms/{v1.FormId}/versions/{v2.Id}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = (await Json(response)).AsObject();
+        Assert.Equal(new[] { "createdAt", "derivedFromVersionId", "formId", "number", "rowVersion", "status", "updatedAt", "versionId" },
+            body.Select(p => p.Key).Order(StringComparer.Ordinal).ToArray());
+        Assert.Equal(v1.FormId, body["formId"]!.GetValue<Guid>());
+        Assert.Equal(v2.Id, body["versionId"]!.GetValue<Guid>());
+        Assert.Equal(2, body["number"]!.GetValue<int>());
+        Assert.Equal("Published", body["status"]!.GetValue<string>());
+        Assert.Equal(8, Convert.FromBase64String(body["rowVersion"]!.GetValue<string>()).Length);
+        Assert.Equal(v1.Id, body["derivedFromVersionId"]!.GetValue<Guid>());
+        Assert.EndsWith("Z", body["createdAt"]!.GetValue<string>());
+        Assert.Null(body["updatedAt"]);
+    }
+
+    [SqlFact]
+    public async Task GetVersionById_UnknownOrForeignVersion_Returns404VersionNotFound()
+    {
+        await using var host = await SqlSchemaTestHost.Create();
+        var version = await host.Seed();
+
+        using var client = host.Client;
+        await AssertProblem(await client.GetAsync($"/forms/{version.FormId}/versions/{Guid.NewGuid()}"),
+            HttpStatusCode.NotFound, "version_not_found");
+        await AssertProblem(await client.GetAsync($"/forms/{Guid.NewGuid()}/versions/{version.Id}"),
+            HttpStatusCode.NotFound, "version_not_found");
     }
 }

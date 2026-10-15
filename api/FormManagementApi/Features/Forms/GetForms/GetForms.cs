@@ -53,8 +53,8 @@ public class GetForms
             x.Id,
             x.Name,
             x.Description,
-            x.CreatedAt,
-            x.UpdatedAt,
+            DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc),
+            x.UpdatedAt is { } updatedAt ? DateTime.SpecifyKind(updatedAt, DateTimeKind.Utc) : null,
             x.TotalVersions,
             x.Latest?.VersionNumber ?? 0,
             x.Latest?.Id ?? Guid.Empty))
